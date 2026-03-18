@@ -1,0 +1,57 @@
+version: '3.9'
+
+services:
+  # ── Auth Service ─────────────────────────────────────
+  auth-service:
+    build:
+      context: .
+      target: builder          # Use builder stage for dev (has ts-node-dev)
+    command: npm run dev
+    ports:
+      - '3001:3001'
+    environment:
+      PORT:                       3001
+      NODE_ENV:                   development
+      DATABASE_URL:               postgresql://postgres:password@auth-db:5432/auth_db
+      JWT_SECRET:                 dev_jwt_secret_change_in_prod
+      JWT_EXPIRES_IN:             15m
+      REFRESH_TOKEN_EXPIRES_IN_DAYS: 30
+      USER_SERVICE_URL:           http://user-service:3002
+      INTERNAL_SECRET:            dev_internal_secret
+      RATE_LIMIT_WINDOW_MS:       900000
+      RATE_LIMIT_MAX:             100
+    volumes:
+      - ./src:/app/src            # Hot reload — src changes reflect immediately
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    networks:
+      - worker-app-network
+    restart: unless-stopped
+
+  # ── Auth Database ─────────────────────────────────────
+  auth-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB:       auth_db
+    ports:
+      - '5433:5432'              # Expose on 5433 to avoid conflict with other services
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - worker-app-network
+
+volumes:
+  auth-db-data:
+
+networks:
+  worker-app-network:
+    driver: bridge
+    name: worker-app-network     # Shared network — other services join this same network
