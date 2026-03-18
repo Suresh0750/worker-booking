@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+  booking-service:
+    build:
+      context: .
+      target: builder
+    command: npm run dev
+    ports:
+      - '3004:3004'
+    environment:
+      PORT:                      3004
+      NODE_ENV:                  development
+      DATABASE_URL:              postgresql://postgres:password@booking-db:5432/booking_db
+      INTERNAL_SECRET:           dev_internal_secret
+      WORKER_SERVICE_URL:        http://worker-service:3003
+      USER_SERVICE_URL:          http://user-service:3002
+      NOTIFICATION_SERVICE_URL:  http://notification-service:3007
+      RATE_LIMIT_WINDOW_MS:      900000
+      RATE_LIMIT_MAX:            100
+    volumes:
+      - ./src:/app/src
+    depends_on:
+      booking-db:
+        condition: service_healthy
+    networks:
+      - worker-app-network
+    restart: unless-stopped
+
+  booking-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB:       booking_db
+    ports:
+      - '5436:5432'
+    volumes:
+      - booking-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - worker-app-network
+
+volumes:
+  booking-db-data:
+
+networks:
+  worker-app-network:
+    driver: bridge
+    name: worker-app-network
