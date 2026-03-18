@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model MediaFile {
+  id          String    @id @default(uuid())
+  ownerId     String    @map("owner_id")        // workerId who owns this file
+  s3Key       String    @unique @map("s3_key")  // path inside S3 bucket
+  cdnUrl      String    @map("cdn_url")         // public CDN URL returned to client
+  fileName    String    @map("file_name")       // original file name
+  mimeType    String    @map("mime_type")
+  sizeBytes   Int       @map("size_bytes")
+  mediaType   MediaType @map("media_type")
+  isAttached  Boolean   @default(false) @map("is_attached") // true after worker service links it
+  uploadedAt  DateTime  @default(now()) @map("uploaded_at")
+
+  @@map("media_files")
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}

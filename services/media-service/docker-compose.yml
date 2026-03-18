@@ -1,0 +1,57 @@
+version: '3.9'
+
+services:
+  media-service:
+    build:
+      context: .
+      target: builder
+    command: npm run dev
+    ports:
+      - '3006:3006'
+    environment:
+      PORT:                   3006
+      NODE_ENV:               development
+      DATABASE_URL:           postgresql://postgres:password@media-db:5432/media_db
+      AWS_REGION:             ap-south-1
+      AWS_ACCESS_KEY_ID:      your_access_key_id
+      AWS_SECRET_ACCESS_KEY:  your_secret_access_key
+      S3_BUCKET_NAME:         worker-app-media
+      INTERNAL_SECRET:        dev_internal_secret
+      WORKER_SERVICE_URL:     http://worker-service:3003
+      MAX_FILE_SIZE_MB:       10
+      RATE_LIMIT_WINDOW_MS:   900000
+      RATE_LIMIT_MAX:         100
+    volumes:
+      - ./src:/app/src
+    depends_on:
+      media-db:
+        condition: service_healthy
+    networks:
+      - worker-app-network
+    restart: unless-stopped
+
+  media-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB:       media_db
+    ports:
+      - '5438:5432'
+    volumes:
+      - media-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - worker-app-network
+
+volumes:
+  media-db-data:
+
+networks:
+  worker-app-network:
+    driver: bridge
+    name: worker-app-network
