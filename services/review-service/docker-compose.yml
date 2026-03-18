@@ -1,0 +1,53 @@
+version: '3.9'
+
+services:
+  review-service:
+    build:
+      context: .
+      target: builder
+    command: npm run dev
+    ports:
+      - '3005:3005'
+    environment:
+      PORT:                  3005
+      NODE_ENV:              development
+      DATABASE_URL:          postgresql://postgres:password@review-db:5432/review_db
+      INTERNAL_SECRET:       dev_internal_secret
+      BOOKING_SERVICE_URL:   http://booking-service:3004
+      WORKER_SERVICE_URL:    http://worker-service:3003
+      RATE_LIMIT_WINDOW_MS:  900000
+      RATE_LIMIT_MAX:        100
+    volumes:
+      - ./src:/app/src
+    depends_on:
+      review-db:
+        condition: service_healthy
+    networks:
+      - worker-app-network
+    restart: unless-stopped
+
+  review-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB:       review_db
+    ports:
+      - '5437:5432'
+    volumes:
+      - review-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - worker-app-network
+
+volumes:
+  review-db-data:
+
+networks:
+  worker-app-network:
+    driver: bridge
+    name: worker-app-network

@@ -1,0 +1,14 @@
+# App
+PORT=3005
+NODE_ENV=development
+
+# Database
+DATABASE_URL=postgresql://postgres:Suresh_0750@database-1.cfgw488wes7a.ap-south-1.rds.amazonaws.com:5432/review_db
+# Inter-service
+INTERNAL_SECRET=internal_secret_shared_between_services
+BOOKING_SERVICE_URL=http://localhost:3004
+WORKER_SERVICE_URL=http://localhost:3003
+
+# Rate limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX=100

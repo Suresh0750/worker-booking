@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Review {
+  id           String   @id @default(uuid())
+  bookingId    String   @unique @map("booking_id") // One review per booking — enforced by unique
+  workerId     String   @map("worker_id")
+  userId       String   @map("user_id")
+
+  // Denormalized — stored so we don't need to call other services to display
+  userName     String?  @map("user_name")
+  workerName   String?  @map("worker_name")
+
+  rating       Int                               // 1 to 5 stars
+  comment      String?
+  isVisible    Boolean  @default(true) @map("is_visible")
+  createdAt    DateTime @default(now())          @map("created_at")
+  updatedAt    DateTime @updatedAt               @map("updated_at")
+
+  @@map("reviews")
+}
