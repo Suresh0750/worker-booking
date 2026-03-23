@@ -16,6 +16,18 @@ export const registerValidation = [
     .optional()
     .isIn(['USER', 'WORKER'])
     .withMessage('Role must be USER or WORKER'),
+  body('name').optional().isLength({ min: 2, max: 100 }).withMessage('Name must be 2-100 characters'),
+  body('phone').optional().isMobilePhone('any').withMessage('Valid phone number required'),
+  body('avatar').optional().isURL().withMessage('Avatar must be a valid URL'),
+  body('bio').optional().isLength({ max: 500 }).withMessage('Bio max 500 characters'),
+  body('experienceYears')
+    .optional()
+    .isInt({ min: 0, max: 50 })
+    .withMessage('Experience must be 0-50 years'),
+  body('availability')
+    .optional()
+    .isIn(['AVAILABLE', 'BUSY', 'UNAVAILABLE'])
+    .withMessage('Invalid availability'),
 ]
 
 export const loginValidation = [

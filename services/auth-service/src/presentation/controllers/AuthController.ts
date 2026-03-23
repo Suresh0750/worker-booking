@@ -5,12 +5,14 @@ import { RefreshAccessToken } from '../../application/use-cases/RefreshAccessTok
 import { LogoutUser }         from '../../application/use-cases/LogoutUser'
 import { PrismaAuthRepository }  from '../../infrastructure/repositories/PrismaAuthRepository'
 import { UserServiceClient }     from '../../infrastructure/services/UserServiceClient'
+import { WorkerServiceClient }   from '../../infrastructure/services/WorkerServiceClient'
 
 // Compose dependencies once — repository + external clients injected into use cases
-const authRepo          = new PrismaAuthRepository()
-const userServiceClient = new UserServiceClient()
+const authRepo            = new PrismaAuthRepository()
+const userServiceClient   = new UserServiceClient()
+const workerServiceClient = new WorkerServiceClient()
 
-const registerUser       = new RegisterUser(authRepo, userServiceClient)
+const registerUser       = new RegisterUser(authRepo, userServiceClient, workerServiceClient)
 const loginUser          = new LoginUser(authRepo)
 const refreshAccessToken = new RefreshAccessToken(authRepo)
 const logoutUser         = new LogoutUser(authRepo)

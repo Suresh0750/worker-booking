@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Conversation {
+  id          String    @id @default(uuid())
+  bookingId   String    @unique @map("booking_id")
+  userId      String    @map("user_id")
+  workerId    String    @map("worker_id")
+  lastMessage String?   @map("last_message")
+  lastSentAt  DateTime? @map("last_sent_at")
+  isPinnedByUser   Boolean @default(false) @map("is_pinned_by_user")
+  isPinnedByWorker Boolean @default(false) @map("is_pinned_by_worker")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt      @map("updated_at")
+
+  messages Message[]
+
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String       @map("conversation_id")
+  senderId       String       @map("sender_id")
+  senderRole     String       @map("sender_role")  // USER or WORKER
+  content        String
+  isPinned       Boolean      @default(false) @map("is_pinned")
+  isDeletedBySender   Boolean @default(false) @map("is_deleted_by_sender")
+  isDeletedByReceiver Boolean @default(false) @map("is_deleted_by_receiver")
+  readAt         DateTime?    @map("read_at")
+  sentAt         DateTime     @default(now()) @map("sent_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}

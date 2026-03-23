@@ -38,8 +38,19 @@ export class PrismaWorkerRepository implements IWorkerRepository {
   }
 
   async create(data: CreateWorkerInput): Promise<WorkerEntity> {
+    const userId = data.userId ?? data.id
     return prisma.worker.create({
-      data: { id: data.id, email: data.email },
+      data: {
+        id:     data.id,
+        userId,
+        email:  data.email,
+        ...(data.name !== undefined && data.name !== null && { name: data.name }),
+        ...(data.phone !== undefined && data.phone !== null && { phone: data.phone }),
+        ...(data.avatar !== undefined && data.avatar !== null && { avatar: data.avatar }),
+        ...(data.bio !== undefined && data.bio !== null && { bio: data.bio }),
+        ...(data.experienceYears !== undefined && { experienceYears: data.experienceYears }),
+        ...(data.availability && { availability: data.availability as any }),
+      },
     }) as Promise<WorkerEntity>
   }
 

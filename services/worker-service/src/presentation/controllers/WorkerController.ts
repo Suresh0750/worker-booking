@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { CreateWorkerProfile }             from '../../application/use-cases/CreateWorkerProfile'
+import { CreateWorkerProfileDto }          from '../../application/dtos/WorkerDto'
 import { GetWorkerProfile }                from '../../application/use-cases/GetWorkerProfile'
 import { UpdateWorkerProfile, SetWorkerCategories } from '../../application/use-cases/UpdateWorkerProfile'
 import { SearchWorkers }                   from '../../application/use-cases/SearchWorkers'
@@ -130,8 +131,21 @@ export class WorkerController {
       const { eventType, data } = req.body
 
       const handlers: Record<string, () => Promise<any>> = {
-        // Auth Service → create worker profile after WORKER role registers
-        create_profile: async () => createWorkerProfile.execute(data),
+        // Auth Service → create worker row (id + userId = auth user id, plus optional profile fields)
+        create_profile: async () => {
+          const payload = data as Partial<CreateWorkerProfileDto>
+          if (!payload?.userId || typeof payload.userId !== 'string') {
+            const err = new Error('userId is required')
+            ;(err as any).status = 400
+            throw err
+          }
+          if (!payload?.email || typeof payload.email !== 'string') {
+            const err = new Error('email is required')
+            ;(err as any).status = 400
+            throw err
+          }
+          return createWorkerProfile.execute(payload as CreateWorkerProfileDto)
+        },
 
         // Review Service → update rating after review submitted
         rating_updated: async () => updateRating.execute(data),

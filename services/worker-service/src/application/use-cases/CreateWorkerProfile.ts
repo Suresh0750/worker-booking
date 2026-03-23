@@ -15,8 +15,15 @@ export class CreateWorkerProfile {
     }
 
     const worker = await this.workerRepo.create({
-      id:    dto.userId,
-      email: dto.email,
+      id:               dto.userId,
+      userId:           dto.userId,
+      email:            dto.email,
+      name:             dto.name,
+      phone:            dto.phone,
+      avatar:           dto.avatar,
+      bio:              dto.bio,
+      experienceYears:  dto.experienceYears,
+      availability:     dto.availability,
     })
 
     return this.toDto(worker)

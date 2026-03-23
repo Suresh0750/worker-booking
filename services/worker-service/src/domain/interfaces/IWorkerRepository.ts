@@ -5,8 +5,15 @@ import {
 } from '../entities/Worker'
 
 export interface CreateWorkerInput {
-  id:    string
-  email: string
+  id:               string
+  userId?:          string
+  email:            string
+  name?:            string | null
+  phone?:           string | null
+  avatar?:          string | null
+  bio?:             string | null
+  experienceYears?: number
+  availability?:    string
 }
 
 export interface UpdateWorkerInput {

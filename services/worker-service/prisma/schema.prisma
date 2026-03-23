@@ -9,6 +9,7 @@ datasource db {
 
 model Worker {
   id              String       @id  // Same UUID as auth_db users.id
+  userId          String?       @unique
   email           String       @unique
   name            String?
   phone           String?
@@ -26,7 +27,9 @@ model Worker {
   addresses        WorkerAddress[]
   workerCategories WorkerCategory[]
   portfolios       Portfolio[]
-
+  rate             Int          @default(0)
+  rateType         RateType     @default(RateType)
+  slotType         SlotType     @default(SlotType)
   @@map("workers")
 }
 
@@ -91,4 +94,16 @@ enum Availability {
 enum MediaType {
   IMAGE
   VIDEO
+}
+
+
+enum RateType {
+  DAILY
+  HOURLY
+}
+
+enum SlotType {
+  HYBRID
+  REQUEST_BASED
+  SLOT_BASED
 }

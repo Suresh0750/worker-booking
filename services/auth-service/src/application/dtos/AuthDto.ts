@@ -5,6 +5,13 @@ export interface RegisterRequestDto {
   email:    string
   password: string
   role?:    'USER' | 'WORKER'
+  /** Optional worker profile fields — used when role is WORKER */
+  name?:            string
+  phone?:           string
+  avatar?:          string
+  bio?:             string
+  experienceYears?: number
+  availability?:    'AVAILABLE' | 'BUSY' | 'UNAVAILABLE'
 }
 
 export interface LoginRequestDto {

@@ -1,9 +1,14 @@
-import { Availability, MediaType } from '../entities/Worker'
-
+import { Availability , MediaType} from '@domain/entities/Worker'
 // ── Request DTOs ──────────────────────────────────────────
 export interface CreateWorkerProfileDto {
   userId: string
   email:  string
+  name?:            string | null
+  phone?:           string | null
+  avatar?:          string | null
+  bio?:             string | null
+  experienceYears?: number
+  availability?:    Availability
 }
 
 export interface UpdateWorkerProfileDto {
