@@ -15,7 +15,6 @@ model Worker {
   phone           String?
   avatar          String?
   bio             String?
-  experienceYears Int          @default(0) @map("experience_years")
   avgRating       Float        @default(0) @map("avg_rating")
   totalReviews    Int          @default(0) @map("total_reviews")
   availability    Availability @default(AVAILABLE)
@@ -27,9 +26,8 @@ model Worker {
   addresses        WorkerAddress[]
   workerCategories WorkerCategory[]
   portfolios       Portfolio[]
-  rate             Int          @default(0)
-  rateType         RateType     @default(RateType)
-  slotType         SlotType     @default(SlotType)
+  
+  
   @@map("workers")
 }
 
@@ -48,7 +46,13 @@ model WorkerCategory {
   workerId   String @map("worker_id")
   categoryId String @map("category_id")
 
-  worker   Worker   @relation(fields: [workerId],   references: [id], onDelete: Cascade)
+  // ✅ ADD THESE HERE
+  experienceYears Int?  @map("experience_years")
+  price           Int?  // per category price
+  rateType         RateType     @default(RateType)
+  slotType         SlotType     @default(SlotType)
+
+  worker   Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
   category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@id([workerId, categoryId])
@@ -84,6 +88,7 @@ model Portfolio {
 
   @@map("portfolios")
 }
+
 
 enum Availability {
   AVAILABLE
