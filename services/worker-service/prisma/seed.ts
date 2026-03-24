@@ -17,6 +17,8 @@ async function main() {
     { name: 'Tile Work',      slug: 'tile-work' },
     { name: 'Aluminium Work', slug: 'aluminium-work' },
     { name: 'Furniture',      slug: 'furniture' },
+    { name: 'Bike Mechanic', slug: 'bike-mechanic' },
+    { name: 'Car Mechanic',  slug: 'car-mechanic' },
   ]
 
   for (const cat of categories) {
@@ -41,8 +43,6 @@ async function main() {
       name:            'Suresh Kumar',
       phone:           '9876543210',
       bio:             'Expert carpenter with 8 years of experience in custom furniture and door fitting.',
-      experienceYears: 8,
-      availability:    'AVAILABLE',
     },
   })
 

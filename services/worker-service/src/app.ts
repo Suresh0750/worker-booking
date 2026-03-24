@@ -5,6 +5,7 @@ import cors           from 'cors'
 import rateLimit      from 'express-rate-limit'
 import workerRoutes   from './presentation/routes/workerRoutes'
 import internalRoutes from './presentation/routes/internalRoutes'
+import seedRoutes from './presentation/routes/seedRoutes'
 import { errorHandler, notFoundHandler } from './presentation/middlewares/index'
 import { logger } from './infrastructure/config/logger'
 
@@ -45,6 +46,7 @@ app.get('/health', (_req, res) => {
 // ── Routes ────────────────────────────────────────────────
 app.use('/workers',  workerRoutes)    // Public + protected worker routes
 app.use('/internal', internalRoutes)  // Internal service-to-service only
+app.use('/seed', seedRoutes)          // Internal category seed routes
 
 // ── Error handling ────────────────────────────────────────
 app.use(notFoundHandler)

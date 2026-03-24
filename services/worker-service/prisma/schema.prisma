@@ -15,9 +15,7 @@ model Worker {
   phone           String?
   avatar          String?
   bio             String?
-  avgRating       Float        @default(0) @map("avg_rating")
-  totalReviews    Int          @default(0) @map("total_reviews")
-  availability    Availability @default(AVAILABLE)
+
   isVerified      Boolean      @default(false) @map("is_verified")
   isActive        Boolean      @default(true)  @map("is_active")
   createdAt       DateTime     @default(now()) @map("created_at")
@@ -49,8 +47,11 @@ model WorkerCategory {
   // ✅ ADD THESE HERE
   experienceYears Int?  @map("experience_years")
   price           Int?  // per category price
-  rateType         RateType     @default(RateType)
-  slotType         SlotType     @default(SlotType)
+  rateType         RateType     @default(HOURLY)
+  slotType         SlotType     @default(SLOT_BASED)
+  avgRating       Float        @default(0) @map("avg_rating")
+  totalReviews    Int          @default(0) @map("total_reviews")
+  availability    Availability @default(AVAILABLE)
 
   worker   Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
   category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
