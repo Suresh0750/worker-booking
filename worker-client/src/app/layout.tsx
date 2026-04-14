@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Sora } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from '@/lib/auth-context'
 import './globals.css'
+import Providers from './Providers'
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -25,20 +26,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${plusJakarta.variable} ${sora.variable}`}>
       <body className="font-sans bg-surface-secondary text-slate-900 antialiased">
-        <AuthProvider>
+        <Providers>
           {children}
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              style: {
-                fontFamily: 'var(--font-plus-jakarta)',
-                fontSize: '14px',
-                borderRadius: '12px',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-              },
-            }}
-          />
-        </AuthProvider>
+        </Providers>
       </body>
     </html>
   )

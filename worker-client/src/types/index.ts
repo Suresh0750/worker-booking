@@ -39,6 +39,8 @@ export interface WorkerProfile {
   isAvailable: boolean
   completedJobs: number
   avatarUrl?: string
+  hourlyRate?: number
+  dailyRate?: number
 }
 
 export interface TimeSlot {
@@ -114,4 +116,12 @@ export interface ApiError {
   success: false
   message: string
   errors?: { field: string; message: string }[]
+}
+
+
+export interface ICategory {
+  id: string
+  name: string
+  slug: string
+  icon?: string
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -16,7 +16,7 @@ import { LocationPicker } from '@/components/ui/LocationPicker'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { Location } from '@/types'
 
-export default function BookingPage() {
+ function BookingPage() {
   const { workerId } = useParams<{ workerId: string }>()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -164,7 +164,7 @@ export default function BookingPage() {
           <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
             <p className="text-xs font-medium text-slate-500 mb-1">Rate estimate</p>
             <p className="text-sm text-slate-700">
-              {formatCurrency(worker.hourlyRate)} / hour · Final price agreed with worker
+              {formatCurrency(worker?.hourlyRate ?? 0)} / hour · Final price agreed with worker
             </p>
           </div>
 
@@ -174,5 +174,14 @@ export default function BookingPage() {
         </form>
       </main>
     </>
+  )
+}
+
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BookingPage />
+    </Suspense>
   )
 }

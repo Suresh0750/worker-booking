@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState,useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
@@ -17,6 +17,9 @@ import { LocationPicker } from '@/components/ui/LocationPicker'
 import { PROFESSIONS, SLOT_TYPE_LABELS } from '@/lib/utils'
 import { Location } from '@/types'
 import { cn } from '@/lib/utils'
+import { useApi } from '@/hooks/useApi'
+import { getCategories } from '@/lib/services/appService'
+import { QUERY_KEYS } from '@/constants/queryKeys'
 
 type SlotType = 'SLOT_BASED' | 'REQUEST_BASED' | 'HYBRID'
 
@@ -47,20 +50,23 @@ export default function RegisterPage() {
   const selectedRateType = watch('rateType') ?? 'HOURLY'
   const maxSteps = role === 'WORKER' ? 3 : 1
 
-  const handleRoleChange = (r: 'USER' | 'WORKER') => {
+  
+  const {data:categories=[],isLoading,isError} = useApi(QUERY_KEYS.categories,getCategories, { select: (res) => res.data }) 
+  
+  const handleRoleChange = useCallback((r: 'USER' | 'WORKER') => {
     setRole(r)
     setValue('role', r)
-  }
-
-  const handleNext = async () => {
+  }, [setValue])  // setRole from useState is stable, no need to add
+  
+  const handleNext = useCallback(async () => {
     let fields: (keyof RegisterFormData)[] = []
     if (step === 0) fields = ['name', 'email', 'password', 'confirmPassword']
     if (step === 1) fields = ['profession', 'rateType', 'rate', 'bio']
     const ok = await trigger(fields)
     if (ok) setStep(s => s + 1)
-  }
-
-  const onSubmit = async (data: RegisterFormData) => {
+  }, [step, trigger])  // step changes per click, trigger from react-hook-form
+  
+  const onSubmit = useCallback(async (data: RegisterFormData) => {
     if (data.role === 'WORKER' && !location) {
       toast.error('Please select your location')
       return
@@ -69,8 +75,7 @@ export default function RegisterPage() {
       const payload = { ...data, location }
       const res = await api.auth.register(payload)
       if (!res.success) throw new Error(res.message)
-
-      // Auto-login after register
+  
       const loginRes = await api.auth.login({ email: data.email, password: data.password })
       tokenStore.set(loginRes.data.accessToken, loginRes.data.refreshToken)
       setUser(loginRes.data)
@@ -79,7 +84,11 @@ export default function RegisterPage() {
     } catch (err: any) {
       toast.error(err?.response?.data?.message ?? err.message ?? 'Registration failed')
     }
-  }
+  }, [location, setUser, router])  // api, tokenStore, toast are stable module-level refs
+ 
+  useEffect(()=>{
+    console.log("categories",categories)
+  },[categories])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-slate-50 flex items-center justify-center px-4 py-12">
@@ -198,7 +207,7 @@ export default function RegisterPage() {
                 <Select
                   label="Profession"
                   placeholder="Select your profession"
-                  options={PROFESSIONS.map(p => ({ value: p, label: p }))}
+                  options={(categories || [])?.map(cat => ({ value: cat?.id, label: cat?.name }))}
                   error={errors.profession?.message}
                   required
                   {...register('profession')}

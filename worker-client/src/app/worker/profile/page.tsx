@@ -42,7 +42,8 @@ export default function ProfileEditPage() {
         name: p.name,
         bio: p.bio ?? '',
         profession: p.profession,
-        hourlyRate: p.hourlyRate,
+        rate: p.rate,
+        rateType: p.rateType,
         skills: p.skills.join(', '),
         isAvailable: p.isAvailable,
       })
@@ -104,12 +105,12 @@ export default function ProfileEditPage() {
             />
 
             <Input
-              label="Hourly rate (₹)"
+              label="Rate (₹)"
               type="number"
-              error={errors.hourlyRate?.message}
+              error={errors.rate?.message}
               leftIcon={<IndianRupee className="w-4 h-4" />}
               required
-              {...register('hourlyRate')}
+              {...register('rate')}
             />
 
             <Textarea

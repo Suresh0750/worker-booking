@@ -81,3 +81,8 @@ export const BOOKING_STATUS_STYLES: Record<string, string> = {
   COMPLETED: 'bg-green-50 text-green-700 border-green-200',
   CANCELLED: 'bg-red-50 text-red-600 border-red-200',
 }
+
+
+
+export const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_URL
+export const WORKER_API_URL = process.env.NEXT_PUBLIC_WORKER_API_URL
