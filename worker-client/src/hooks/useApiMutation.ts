@@ -4,7 +4,7 @@ export const useApiMutation = (
   mutationFn: (payload: any) => Promise<any>,
   invalidateKey?: string // just pass the base key
 ) => {
-  const queryClient = useQueryClient();
+const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn,

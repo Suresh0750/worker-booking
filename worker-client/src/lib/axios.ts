@@ -39,5 +39,5 @@ const createInstance = (baseURL: string | undefined): AxiosInstance => {
   return instance;
 };
 
-export const authApi   = createInstance(AUTH_URL);
 export const workerApi = createInstance(WORKER_API_URL);
+export const authApi   = createInstance(AUTH_URL);

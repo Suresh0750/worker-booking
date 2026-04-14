@@ -7,7 +7,16 @@ import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "react-hot-toast";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 5 * 60 * 1000,      // data stays fresh for 5 mins
+        refetchOnWindowFocus: false,    // don't refetch on tab switch
+        refetchOnReconnect: false,      // don't refetch on reconnect
+        retry: 1,                       // only retry failed requests once
+      },
+    },
+  }));
 
   return (
     <QueryClientProvider client={queryClient}>
