@@ -39,6 +39,8 @@ export interface WorkerProfile {
   isAvailable: boolean
   completedJobs: number
   avatarUrl?: string
+  hourlyRate?: number
+  dailyRate?: number
 }
 
 export interface TimeSlot {

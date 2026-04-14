@@ -164,7 +164,7 @@ export default function BookingPage() {
           <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
             <p className="text-xs font-medium text-slate-500 mb-1">Rate estimate</p>
             <p className="text-sm text-slate-700">
-              {formatCurrency(worker.hourlyRate)} / hour · Final price agreed with worker
+              {formatCurrency(worker?.hourlyRate ?? 0)} / hour · Final price agreed with worker
             </p>
           </div>
 

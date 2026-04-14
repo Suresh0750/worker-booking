@@ -101,7 +101,7 @@ export default function WorkerDetailPage() {
                 </div>
                 <div className="flex items-center gap-1 text-sm text-slate-600">
                   <IndianRupee className="w-3.5 h-3.5" />
-                  {formatCurrency(worker.hourlyRate)}/hr
+                  {formatCurrency(worker.hourlyRate ?? 0)}/hr
                 </div>
               </div>
             </div>
