@@ -8,33 +8,57 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String   @map("password_hash")
-  role         Role     @default(USER)
-  isActive     Boolean  @default(true) @map("is_active")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(uuid())
 
-  refreshTokens RefreshToken[]
+  fullName    String   @map("full_name")
+  email       String   @unique
+  phone       String   @unique
+  password    String
+
+  role        UserRole
+  gender      String?
+  dob         DateTime?
+
+  profileImage String? @map("profile_image")
+
+  isBlocked   Boolean  @default(false) @map("is_blocked")
+
+  authProvider String? @map("auth_provider")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("users")
 }
 
 model RefreshToken {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  userId    String   @map("user_id")
-  expiresAt DateTime @map("expires_at")
-  createdAt DateTime @default(now()) @map("created_at")
+  id          String    @id @default(uuid())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String    @map("user_id")
 
+  tokenHash   String    @unique @map("token_hash")
+
+  ipAddress   String?   @map("ip_address")
+  userAgent   String?   @map("user_agent")
+
+  expiresAt   DateTime  @map("expires_at")
+  revokedAt   DateTime? @map("revoked_at")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(
+    fields: [userId],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  @@index([userId])
   @@map("refresh_tokens")
 }
 
-enum Role {
-  USER
+enum UserRole {
+  CUSTOMER
   WORKER
   ADMIN
 }
