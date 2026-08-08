@@ -46,3 +46,10 @@ Availability
     Monday
     Tuesday
     Wednesday
+
+
+Message Permission
+
+    ANYONE 
+    BOOKED_CUSTOMERS
+    NO_ONE
