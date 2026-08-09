@@ -50,7 +50,7 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center mb-8 animate-fade-up" style={{ animationDelay: '0ms' }}>
           <div className="inline-flex items-center justify-center mb-4">
-            <Logo className="w-14 h-14 rounded-2xl" />
+            <Logo className="h-14 w-auto" />
           </div>
           <h1 className="font-display text-2xl font-semibold text-slate-900">Welcome back</h1>
           <p className="text-slate-500 text-sm mt-1">Sign in to your WorkerHub account</p>
