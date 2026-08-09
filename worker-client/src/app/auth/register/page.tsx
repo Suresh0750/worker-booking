@@ -11,6 +11,7 @@ import { registerSchema, RegisterFormData } from '@/lib/validations'
 import { api, tokenStore } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { Input } from '@/components/ui/Input'
+import { Logo } from '@/components/layout/Logo'
 import { Button } from '@/components/ui/Button'
 import { Select, Textarea } from '@/components/ui/FormFields'
 import { LocationPicker } from '@/components/ui/LocationPicker'
@@ -95,10 +96,8 @@ export default function RegisterPage() {
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-600 mb-4">
-            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
-            </svg>
+          <div className="inline-flex items-center justify-center mb-4">
+            <Logo className="w-14 h-14 rounded-2xl" />
           </div>
           <h1 className="font-display text-2xl font-semibold text-slate-900">Create your account</h1>
           <p className="text-slate-500 text-sm mt-1">Join thousands of workers and clients</p>

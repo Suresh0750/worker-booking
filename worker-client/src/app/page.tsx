@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Search, Shield, Star, Clock } from 'lucide-react'
+import { Logo } from '@/components/layout/Logo'
 
 export default function HomePage() {
   return (
@@ -7,12 +8,7 @@ export default function HomePage() {
       {/* Nav */}
       <nav className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-brand-600 flex items-center justify-center">
-            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
-            </svg>
-          </div>
-          <span className="font-display font-semibold text-slate-900">WorkerHub</span>
+          <Logo />
         </div>
         <div className="flex items-center gap-3">
           <Link href="/auth/login" className="btn-secondary py-2 px-4 text-sm">Login</Link>
