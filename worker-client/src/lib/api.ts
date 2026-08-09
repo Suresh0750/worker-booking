@@ -88,6 +88,10 @@ export const api = {
       http.post<ApiResponse<{ user: AuthUser }>>('/auth/register', body).then((r) => r.data),
     login: (body: unknown) =>
       http.post<ApiResponse<AuthUser>>('/auth/login', body).then((r) => r.data),
+    sendOtp: (body: unknown) =>
+      http.post<ApiResponse<{ sent: boolean }>>('/auth/send-otp', body).then((r) => r.data),
+    verifyOtp: (body: unknown) =>
+      http.post<ApiResponse<{ verified: boolean }>>('/auth/verify-otp', body).then((r) => r.data),
     logout: () => {
       const refreshToken = tokenStore.getRefresh()
       tokenStore.clear()
