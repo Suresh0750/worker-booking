@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { body, validationResult } from 'express-validator'
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 
 // Reusable validation chains
 export const registerValidation = [
@@ -47,7 +48,7 @@ export const validateRequest = (
 ): void => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
-    res.status(400).json({
+    res.status(HttpStatus.BAD_REQUEST).json({
       success: false,
       errors:  errors.array().map((e) => ({ field: e.type, message: e.msg })),
     })

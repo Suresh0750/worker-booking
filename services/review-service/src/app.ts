@@ -4,6 +4,7 @@ import helmet        from 'helmet'
 import cors          from 'cors'
 import rateLimit     from 'express-rate-limit'
 import reviewRoutes  from './presentation/routes/reviewRoutes'
+import { HttpStatus } from './domain/enums/HttpStatus'
 import { errorHandler, notFoundHandler } from './presentation/middlewares/index'
 import { logger } from './infrastructure/config/logger'
 
@@ -35,7 +36,7 @@ app.use(limiter)
 
 // ── Health check ──────────────────────────────────────────
 app.get('/health', (_req, res) => {
-  res.status(200).json({
+  res.status(HttpStatus.OK).json({
     status:    'ok',
     service:   'review-service',
     uptime:    process.uptime(),

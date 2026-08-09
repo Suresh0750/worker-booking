@@ -3,6 +3,7 @@ import { RegisterUser }       from '../../application/use-cases/RegisterUser'
 import { LoginUser }          from '../../application/use-cases/LoginUser'
 import { RefreshAccessToken } from '../../application/use-cases/RefreshAccessToken'
 import { LogoutUser }         from '../../application/use-cases/LogoutUser'
+import { HttpStatus }         from '../../domain/enums/HttpStatus'
 import { PrismaAuthRepository }  from '../../infrastructure/repositories/PrismaAuthRepository'
 import { UserServiceClient }     from '../../infrastructure/services/UserServiceClient'
 import { WorkerServiceClient }   from '../../infrastructure/services/WorkerServiceClient'
@@ -22,7 +23,7 @@ export class AuthController {
   static async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await registerUser.execute(req.body)
-      res.status(201).json({ success: true, data: result })
+      res.status(HttpStatus.CREATED).json({ success: true, data: result })
     } catch (err) {
       next(err)
     }
@@ -32,7 +33,7 @@ export class AuthController {
   static async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await loginUser.execute(req.body)
-      res.status(200).json({ success: true, data: result })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) {
       next(err)
     }
@@ -42,7 +43,7 @@ export class AuthController {
   static async refresh(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await refreshAccessToken.execute(req.body)
-      res.status(200).json({ success: true, data: result })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) {
       next(err)
     }
@@ -52,7 +53,7 @@ export class AuthController {
   static async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       await logoutUser.execute(req.body)
-      res.status(200).json({ success: true, message: 'Logged out successfully' })
+      res.status(HttpStatus.OK).json({ success: true, message: 'Logged out successfully' })
     } catch (err) {
       next(err)
     }
@@ -63,7 +64,7 @@ export class AuthController {
     try {
       const userId = (req as any).userId // set by JWT middleware in API Gateway
       await logoutUser.executeAll(userId)
-      res.status(200).json({ success: true, message: 'Logged out from all devices' })
+      res.status(HttpStatus.OK).json({ success: true, message: 'Logged out from all devices' })
     } catch (err) {
       next(err)
     }
@@ -76,14 +77,14 @@ export class AuthController {
       const { token } = req.body
 
       if (!token) {
-        res.status(400).json({ success: false, message: 'Token is required' })
+        res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: 'Token is required' })
         return
       }
 
       const payload = jwt.default.verify(token, process.env.JWT_SECRET as string)
-      res.status(200).json({ success: true, data: payload })
+      res.status(HttpStatus.OK).json({ success: true, data: payload })
     } catch (err: any) {
-      res.status(401).json({ success: false, message: 'Invalid or expired token' })
+      res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: 'Invalid or expired token' })
     }
   }
 }

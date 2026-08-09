@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { v4 as uuid } from 'uuid'
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { IAuthRepository } from '../../domain/interfaces/IAuthRepository'
 import { LoginRequestDto, LoginResponseDto } from '../dtos/AuthDto'
 
@@ -9,10 +10,11 @@ export class LoginUser {
 
   async execute(dto: LoginRequestDto): Promise<LoginResponseDto> {
     // 1. Find user — generic error message to prevent email enumeration
+    
     const user = await this.authRepo.findByEmail(dto.email)
     if (!user || !user.isActive) {
       const err = new Error('Invalid email or password')
-      ;(err as any).status = 401
+      ;(err as any).status = HttpStatus.UNAUTHORIZED
       throw err
     }
 
@@ -20,7 +22,7 @@ export class LoginUser {
     const isValid = await bcrypt.compare(dto.password, user.passwordHash)
     if (!isValid) {
       const err = new Error('Invalid email or password')
-      ;(err as any).status = 401
+      ;(err as any).status = HttpStatus.UNAUTHORIZED
       throw err
     }
 

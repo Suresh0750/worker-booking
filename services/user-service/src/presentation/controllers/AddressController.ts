@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { AddAddress }       from '../../application/use-cases/AddAddress'
 import { UpdateAddress, SetPrimaryAddress, DeleteAddress } from '../../application/use-cases/AddressUseCases'
+import { HttpStatus }       from '../../domain/enums/HttpStatus'
 import { PrismaUserRepository }    from '../../infrastructure/repositories/PrismaUserRepository'
 import { PrismaAddressRepository } from '../../infrastructure/repositories/PrismaAddressRepository'
 
@@ -18,7 +19,7 @@ export class AddressController {
     try {
       const userId   = (req as any).userId
       const addresses = await addressRepo.findByUserId(userId)
-      res.status(200).json({ success: true, data: addresses })
+      res.status(HttpStatus.OK).json({ success: true, data: addresses })
     } catch (err) { next(err) }
   }
 
@@ -27,7 +28,7 @@ export class AddressController {
     try {
       const userId = (req as any).userId
       const result = await addAddress.execute(userId, req.body)
-      res.status(201).json({ success: true, data: result })
+      res.status(HttpStatus.CREATED).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
@@ -36,7 +37,7 @@ export class AddressController {
     try {
       const userId = (req as any).userId
       const result = await updateAddress.execute(req.params.id, userId, req.body)
-      res.status(200).json({ success: true, data: result })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
@@ -45,7 +46,7 @@ export class AddressController {
     try {
       const userId = (req as any).userId
       await setPrimaryAddress.execute(req.params.id, userId)
-      res.status(200).json({ success: true, message: 'Primary address updated' })
+      res.status(HttpStatus.OK).json({ success: true, message: 'Primary address updated' })
     } catch (err) { next(err) }
   }
 
@@ -54,7 +55,7 @@ export class AddressController {
     try {
       const userId = (req as any).userId
       await deleteAddress.execute(req.params.id, userId)
-      res.status(200).json({ success: true, message: 'Address deleted' })
+      res.status(HttpStatus.OK).json({ success: true, message: 'Address deleted' })
     } catch (err) { next(err) }
   }
 }

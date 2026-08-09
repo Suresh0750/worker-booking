@@ -9,6 +9,14 @@ import { UserEntity, RefreshTokenEntity } from '../../domain/entities/User'
 export class PrismaAuthRepository implements IAuthRepository {
 
   async findByEmail(email: string): Promise<UserEntity | null> {
+    const tables = await prisma.$queryRaw`
+  SELECT table_name
+  FROM information_schema.tables
+  WHERE table_schema = 'public';
+`;
+
+console.log(tables);
+    const users = await prisma.user.findMany();
     return prisma.user.findUnique({ where: { email } }) as Promise<UserEntity | null>
   }
 

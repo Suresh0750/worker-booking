@@ -1,3 +1,4 @@
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { IWorkerRepository }      from '../../domain/interfaces/IWorkerRepository'
 import { IWorkerCategoryRepository } from '../../domain/interfaces/ICategoryRepository'
 import { UpdateWorkerProfileDto, SetCategoriesDto, WorkerProfileDto } from '../dtos/WorkerDto'
@@ -9,7 +10,7 @@ export class UpdateWorkerProfile {
     const worker = await this.workerRepo.findById(workerId)
     if (!worker) {
       const err = new Error('Worker not found')
-      ;(err as any).status = 404
+      ;(err as any).status = HttpStatus.NOT_FOUND
       throw err
     }
 
@@ -50,7 +51,7 @@ export class SetWorkerCategories {
   async execute(workerId: string, dto: SetCategoriesDto): Promise<void> {
     if (!dto.categoryIds.length) {
       const err = new Error('At least one category is required')
-      ;(err as any).status = 400
+      ;(err as any).status = HttpStatus.BAD_REQUEST
       throw err
     }
     await this.categoryRepo.setWorkerCategories(workerId, dto.categoryIds)

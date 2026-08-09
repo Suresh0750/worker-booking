@@ -1,3 +1,4 @@
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { IAddressRepository } from '../../domain/interfaces/IAddressRepository'
 import { UpdateAddressDto, AddressResponseDto } from '../dtos/UserDto'
 
@@ -14,14 +15,14 @@ export class UpdateAddress {
 
     if (!address) {
       const err = new Error('Address not found')
-      ;(err as any).status = 404
+      ;(err as any).status = HttpStatus.NOT_FOUND
       throw err
     }
 
     // Make sure user owns this address
     if (address.userId !== userId) {
       const err = new Error('Forbidden')
-      ;(err as any).status = 403
+      ;(err as any).status = HttpStatus.FORBIDDEN
       throw err
     }
 
@@ -51,13 +52,13 @@ export class SetPrimaryAddress {
 
     if (!address) {
       const err = new Error('Address not found')
-      ;(err as any).status = 404
+      ;(err as any).status = HttpStatus.NOT_FOUND
       throw err
     }
 
     if (address.userId !== userId) {
       const err = new Error('Forbidden')
-      ;(err as any).status = 403
+      ;(err as any).status = HttpStatus.FORBIDDEN
       throw err
     }
 
@@ -74,19 +75,19 @@ export class DeleteAddress {
 
     if (!address) {
       const err = new Error('Address not found')
-      ;(err as any).status = 404
+      ;(err as any).status = HttpStatus.NOT_FOUND
       throw err
     }
 
     if (address.userId !== userId) {
       const err = new Error('Forbidden')
-      ;(err as any).status = 403
+      ;(err as any).status = HttpStatus.FORBIDDEN
       throw err
     }
 
     if (address.isPrimary) {
       const err = new Error('Cannot delete primary address. Set another address as primary first.')
-      ;(err as any).status = 400
+      ;(err as any).status = HttpStatus.BAD_REQUEST
       throw err
     }
 

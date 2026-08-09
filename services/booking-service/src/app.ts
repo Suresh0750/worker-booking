@@ -3,6 +3,7 @@ import express        from 'express'
 import helmet         from 'helmet'
 import cors           from 'cors'
 import rateLimit      from 'express-rate-limit'
+import { HttpStatus } from './domain/enums/HttpStatus'
 import bookingRoutes  from './presentation/routes/bookingRoutes'
 import internalRoutes from './presentation/routes/internalRoutes'
 import { errorHandler, notFoundHandler } from './presentation/middlewares/index'
@@ -36,7 +37,7 @@ app.use(limiter)
 
 // ── Health check ──────────────────────────────────────────
 app.get('/health', (_req, res) => {
-  res.status(200).json({
+  res.status(HttpStatus.OK).json({
     status:    'ok',
     service:   'booking-service',
     uptime:    process.uptime(),

@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs'
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { IAuthRepository } from '../../domain/interfaces/IAuthRepository'
 import { IUserServiceClient } from '../../domain/interfaces/IUserServiceClient'
 import { IWorkerServiceClient } from '../../domain/interfaces/IWorkerServiceClient'
@@ -16,7 +17,7 @@ export class RegisterUser {
     const existing = await this.authRepo.findByEmail(dto.email)
     if (existing) {
       const err = new Error('Email already in use')
-      ;(err as any).status = 409
+      ;(err as any).status = HttpStatus.CONFLICT
       throw err
     }
 

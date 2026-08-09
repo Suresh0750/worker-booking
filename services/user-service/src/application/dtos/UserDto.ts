@@ -1,4 +1,4 @@
-import { Role } from '../entities/User'
+import { Role } from '../../domain/entities/User'
 
 // ── User DTOs ─────────────────────────────────────────────
 export interface CreateProfileDto {

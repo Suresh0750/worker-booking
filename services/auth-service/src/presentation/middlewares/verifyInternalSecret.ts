@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 
 // Protects /internal/* routes from being called by the public internet
 // Only other services that know the shared INTERNAL_SECRET can call these
@@ -10,7 +11,7 @@ export const verifyInternalSecret = (
   const secret = req.headers['x-internal-secret']
 
   if (!secret || secret !== process.env.INTERNAL_SECRET) {
-    res.status(403).json({ success: false, message: 'Forbidden' })
+    res.status(HttpStatus.FORBIDDEN).json({ success: false, message: 'Forbidden' })
     return
   }
   next()

@@ -1,3 +1,4 @@
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { IUserRepository } from '../../domain/interfaces/IUserRepository'
 import { UpdateProfileDto, UserResponseDto } from '../dtos/UserDto'
 
@@ -8,7 +9,7 @@ export class UpdateProfile {
     const user = await this.userRepo.findById(userId)
     if (!user) {
       const err = new Error('User not found')
-      ;(err as any).status = 404
+      ;(err as any).status = HttpStatus.NOT_FOUND
       throw err
     }
 

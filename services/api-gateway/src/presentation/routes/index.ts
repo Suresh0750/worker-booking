@@ -1,5 +1,6 @@
 import { Router, Request, Response }   from 'express'
 import rateLimit                        from 'express-rate-limit'
+import { HttpStatus }                   from '../../infrastructure/constants/HttpStatus'
 import { authenticate, optionalAuthenticate, requireRole } from '../middlewares/auth'
 import { createProxy }                  from '../middlewares/proxy'
 import { SERVICES }                     from '../../infrastructure/config/services'
@@ -141,7 +142,7 @@ router.get('/health/all', async (_req: Request, res: Response) => {
   const results = checks.map((c) => (c.status === 'fulfilled' ? c.value : c.reason))
   const allUp   = results.every((r) => r.status === 'up')
 
-  res.status(allUp ? 200 : 207).json({
+  res.status(allUp ? HttpStatus.OK : HttpStatus.MULTI_STATUS).json({
     success:  allUp,
     services: results,
   })

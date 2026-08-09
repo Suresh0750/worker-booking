@@ -7,6 +7,7 @@ import {
   SendMessage,
   UpdateBookingPrice,
 } from '../../application/use-cases/BookingUseCases'
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { PrismaBookingRepository } from '../../infrastructure/repositories/PrismaBookingRepository'
 import { NotificationClient } from '../../infrastructure/services/NotificationClient'
 
@@ -27,7 +28,7 @@ export class BookingController {
     try {
       const userId = (req as any).userId
       const result = await createBooking.execute(userId, req.body)
-      res.status(201).json({ success: true, data: result })
+      res.status(HttpStatus.CREATED).json({ success: true, data: result })
     } catch (err) {
       next(err)
     }
@@ -43,7 +44,7 @@ export class BookingController {
         page:   req.query.page  ? parseInt(req.query.page  as string) : undefined,
         limit:  req.query.limit ? parseInt(req.query.limit as string) : undefined,
       })
-      res.status(200).json({ success: true, ...result })
+      res.status(HttpStatus.OK).json({ success: true, ...result })
     } catch (err) {
       next(err)
     }
@@ -54,7 +55,7 @@ export class BookingController {
     try {
       const userId = (req as any).userId
       const result = await getBooking.execute(req.params.id, userId)
-      res.status(200).json({ success: true, data: result })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) {
       next(err)
     }
@@ -65,7 +66,7 @@ export class BookingController {
     try {
       const userId = (req as any).userId
       const result = await updateStatus.execute(req.params.id, userId, req.body)
-      res.status(200).json({ success: true, data: result })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) {
       next(err)
     }
@@ -76,7 +77,7 @@ export class BookingController {
     try {
       const userId = (req as any).userId
       const result = await updateBookingPrice.execute(req.params.id, userId, req.body)
-      res.status(200).json({ success: true, data: result })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) {
       next(err)
     }
@@ -87,7 +88,7 @@ export class BookingController {
     try {
       const userId  = (req as any).userId
       const booking = await getBooking.execute(req.params.id, userId)
-      res.status(200).json({ success: true, data: booking.messages })
+      res.status(HttpStatus.OK).json({ success: true, data: booking.messages })
     } catch (err) {
       next(err)
     }
@@ -99,7 +100,7 @@ export class BookingController {
       const userId    = (req as any).userId
       const userRole  = (req as any).userRole ?? 'USER'
       const result    = await sendMessage.execute(req.params.id, userId, userRole, req.body)
-      res.status(201).json({ success: true, data: result })
+      res.status(HttpStatus.CREATED).json({ success: true, data: result })
     } catch (err) {
       next(err)
     }
@@ -109,7 +110,7 @@ export class BookingController {
   static async getStatusLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const logs = await bookingRepo.getStatusLogs(req.params.id)
-      res.status(200).json({ success: true, data: logs })
+      res.status(HttpStatus.OK).json({ success: true, data: logs })
     } catch (err) {
       next(err)
     }

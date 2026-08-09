@@ -1,3 +1,4 @@
+import { HttpStatus }           from '../../domain/enums/HttpStatus'
 import { IBookingRepository }  from '../../domain/interfaces/IBookingRepository'
 import { INotificationClient } from '../../domain/interfaces/INotificationClient'
 import { STATUS_TRANSITIONS }  from '../../domain/entities/Booking'
@@ -18,14 +19,14 @@ export class UpdateBookingStatus {
 
     if (!booking) {
       const err = new Error('Booking not found')
-      ;(err as any).status = 404
+      ;(err as any).status = HttpStatus.NOT_FOUND
       throw err
     }
 
     // Ownership check — only the user or worker on this booking can change status
     if (booking.userId !== requesterId && booking.workerId !== requesterId) {
       const err = new Error('Forbidden — you are not part of this booking')
-      ;(err as any).status = 403
+      ;(err as any).status = HttpStatus.FORBIDDEN
       throw err
     }
 
@@ -35,7 +36,7 @@ export class UpdateBookingStatus {
       const err = new Error(
         `Cannot move from ${booking.status} to ${dto.status}. Allowed: ${allowed.join(', ') || 'none'}`,
       )
-      ;(err as any).status = 400
+      ;(err as any).status = HttpStatus.BAD_REQUEST
       throw err
     }
 

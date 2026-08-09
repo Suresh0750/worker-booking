@@ -5,7 +5,8 @@ import cors       from 'cors'
 import rateLimit  from 'express-rate-limit'
 import routes     from './presentation/routes/index'
 import { requestLogger, errorHandler, notFoundHandler } from './presentation/middlewares/requestLogger'
-import { logger } from './infrastructure/config/logger'
+import { logger }     from './infrastructure/config/logger'
+import { HttpStatus } from './infrastructure/constants/HttpStatus'
 
 const app  = express()
 const PORT = process.env.PORT ?? 3000
@@ -49,7 +50,7 @@ app.use(requestLogger)
 
 // ── Gateway health check ──────────────────────────────────
 app.get('/health', (_req, res) => {
-  res.status(200).json({
+  res.status(HttpStatus.OK).json({
     status:    'ok',
     service:   'api-gateway',
     uptime:    process.uptime(),
@@ -63,7 +64,7 @@ app.use('/api', routes)
 // ── Block direct access to /internal routes ───────────────
 // Extra safety — services should not expose /internal to gateway's public port
 app.use('/internal', (_req, res) => {
-  res.status(403).json({ success: false, message: 'Forbidden' })
+  res.status(HttpStatus.FORBIDDEN).json({ success: false, message: 'Forbidden' })
 })
 
 // ── Error handling ────────────────────────────────────────

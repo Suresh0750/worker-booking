@@ -1,3 +1,4 @@
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { IPortfolioRepository }     from '../../domain/interfaces/IWorkerAddressRepository'
 import { IWorkerAddressRepository }  from '../../domain/interfaces/IWorkerAddressRepository'
 import { IWorkerRepository }         from '../../domain/interfaces/IWorkerRepository'
@@ -47,7 +48,7 @@ export class AddWorkerAddress {
     const worker = await this.workerRepo.findById(workerId)
     if (!worker) {
       const err = new Error('Worker not found')
-      ;(err as any).status = 404
+      ;(err as any).status = HttpStatus.NOT_FOUND
       throw err
     }
 

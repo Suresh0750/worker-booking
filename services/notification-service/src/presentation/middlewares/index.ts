@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express'
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { logger } from '../../infrastructure/config/logger'
 
 // ── Internal secret guard ─────────────────────────────────
 export const verifyInternalSecret = (req: Request, res: Response, next: NextFunction): void => {
   if (req.headers['x-internal-secret'] !== process.env.INTERNAL_SECRET) {
-    res.status(403).json({ success: false, message: 'Forbidden' })
+    res.status(HttpStatus.FORBIDDEN).json({ success: false, message: 'Forbidden' })
     return
   }
   next()
@@ -21,9 +22,9 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction,
 ): void => {
-  const status  = err.status ?? 500
+  const status  = err.status ?? HttpStatus.INTERNAL_SERVER_ERROR
   const message = err.message ?? 'Internal server error'
-  if (status === 500) logger.error(`Unhandled error: ${err.stack}`)
+  if (status === HttpStatus.INTERNAL_SERVER_ERROR) logger.error(`Unhandled error: ${err.stack}`)
   res.status(status).json({
     success: false,
     message,
@@ -32,5 +33,5 @@ export const errorHandler = (
 }
 
 export const notFoundHandler = (req: Request, res: Response): void => {
-  res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` })
+  res.status(HttpStatus.NOT_FOUND).json({ success: false, message: `Route ${req.originalUrl} not found` })
 }

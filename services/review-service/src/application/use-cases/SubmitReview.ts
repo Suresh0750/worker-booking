@@ -1,3 +1,4 @@
+import { HttpStatus }     from '../../domain/enums/HttpStatus'
 import { IReviewRepository } from '../../domain/interfaces/IReviewRepository'
 import { IBookingClient }    from '../../domain/interfaces/IServiceClients'
 import { IWorkerClient }     from '../../domain/interfaces/IServiceClients'
@@ -18,7 +19,7 @@ export class SubmitReview {
       const err = new Error(
         'Cannot review — booking must be completed and you must be the user who booked',
       )
-      ;(err as any).status = 403
+      ;(err as any).status = HttpStatus.FORBIDDEN
       throw err
     }
 
@@ -26,14 +27,14 @@ export class SubmitReview {
     const existing = await this.reviewRepo.findByBookingId(dto.bookingId)
     if (existing) {
       const err = new Error('You have already reviewed this booking')
-      ;(err as any).status = 409
+      ;(err as any).status = HttpStatus.CONFLICT
       throw err
     }
 
     // 3. Validate rating range
     if (dto.rating < 1 || dto.rating > 5) {
       const err = new Error('Rating must be between 1 and 5')
-      ;(err as any).status = 400
+      ;(err as any).status = HttpStatus.BAD_REQUEST
       throw err
     }
 

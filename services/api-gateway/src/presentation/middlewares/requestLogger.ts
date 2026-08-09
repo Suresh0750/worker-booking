@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { v4 as uuid } from 'uuid'
 import { logger }     from '../../infrastructure/config/logger'
+import { HttpStatus } from '../../infrastructure/constants/HttpStatus'
 
 // Adds a unique request ID to every request for tracing across services
 export const requestLogger = (req: Request, res: Response, next: NextFunction): void => {
@@ -34,10 +35,10 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction,
 ): void => {
-  const status  = err.status ?? 500
+  const status  = err.status ?? HttpStatus.INTERNAL_SERVER_ERROR
   const message = err.message ?? 'Internal server error'
 
-  if (status === 500) {
+  if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
     logger.error(`Gateway error on ${req.method} ${req.originalUrl}: ${err.stack}`)
   }
 
@@ -50,7 +51,7 @@ export const errorHandler = (
 }
 
 export const notFoundHandler = (req: Request, res: Response): void => {
-  res.status(404).json({
+  res.status(HttpStatus.NOT_FOUND).json({
     success: false,
     message: `Route ${req.method} ${req.originalUrl} not found`,
     hint:    'Check the API documentation for available routes',

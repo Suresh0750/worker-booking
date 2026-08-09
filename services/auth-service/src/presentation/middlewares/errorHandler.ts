@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { Prisma } from '@prisma/client'
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { logger } from '../../infrastructure/config/logger'
 
 export interface AppError extends Error {
@@ -9,14 +10,14 @@ export interface AppError extends Error {
 function mapPrismaToHttp(err: unknown): AppError | null {
   if (err instanceof Prisma.PrismaClientInitializationError) {
     const e = new Error('Database is temporarily unavailable') as AppError
-    e.status = 503
+    e.status = HttpStatus.SERVICE_UNAVAILABLE
     return e
   }
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     // P1001: can't reach server, P1017: server closed connection, P1000: auth failed at DB
     if (['P1000', 'P1001', 'P1017'].includes(err.code)) {
       const e = new Error('Database is temporarily unavailable') as AppError
-      e.status = 503
+      e.status = HttpStatus.SERVICE_UNAVAILABLE
       return e
     }
   }
@@ -32,10 +33,10 @@ export const errorHandler = (
   const mapped = mapPrismaToHttp(err)
   const appErr = (mapped ?? err) as AppError
 
-  const status  = appErr.status ?? 500
+  const status  = appErr.status ?? HttpStatus.INTERNAL_SERVER_ERROR
   const message = appErr.message ?? 'Internal server error'
 
-  if (status === 500) {
+  if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
     const stack = appErr instanceof Error ? appErr.stack : String(err)
     logger.error(`Unhandled error: ${stack}`)
   }
@@ -49,5 +50,5 @@ export const errorHandler = (
 }
 
 export const notFoundHandler = (req: Request, res: Response): void => {
-  res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` })
+  res.status(HttpStatus.NOT_FOUND).json({ success: false, message: `Route ${req.originalUrl} not found` })
 }

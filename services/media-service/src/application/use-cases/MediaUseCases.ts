@@ -1,3 +1,4 @@
+import { HttpStatus }     from '../../domain/enums/HttpStatus'
 import { IMediaRepository } from '../../domain/interfaces/IMediaRepository'
 import { IS3Service }       from '../../domain/interfaces/IServiceInterfaces'
 import { MediaResponseDto } from '../dtos/MediaDto'
@@ -14,14 +15,14 @@ export class DeleteMedia {
 
     if (!media) {
       const err = new Error('Media not found')
-      ;(err as any).status = 404
+      ;(err as any).status = HttpStatus.NOT_FOUND
       throw err
     }
 
     // Ownership check — worker can only delete their own files
     if (media.ownerId !== workerId) {
       const err = new Error('Forbidden — you do not own this file')
-      ;(err as any).status = 403
+      ;(err as any).status = HttpStatus.FORBIDDEN
       throw err
     }
 

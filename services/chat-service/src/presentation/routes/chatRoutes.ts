@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express'
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { PrismaChatRepository } from '../../infrastructure/repositories/PrismaChatRepository'
 import { PresenceStore }        from '../../infrastructure/services/PresenceStore'
 
@@ -23,7 +24,7 @@ router.get('/conversations', async (req: Request, res: Response, next: NextFunct
       return { ...c, isOtherOnline: PresenceStore.isOnline(otherId) }
     })
 
-    res.json({ success: true, data: enriched })
+    res.status(HttpStatus.OK).json({ success: true, data: enriched })
   } catch (err) { next(err) }
 })
 
@@ -39,7 +40,7 @@ router.post('/conversations', async (req: Request, res: Response, next: NextFunc
       workerId,
     })
 
-    res.status(201).json({ success: true, data: conversation })
+    res.status(HttpStatus.CREATED).json({ success: true, data: conversation })
   } catch (err) { next(err) }
 })
 
@@ -50,7 +51,7 @@ router.get('/conversations/:id/messages', async (req: Request, res: Response, ne
     const conv   = await chatRepo.findConversationById(req.params.id)
 
     if (!conv || (conv.userId !== userId && conv.workerId !== userId)) {
-      res.status(403).json({ success: false, message: 'Forbidden' })
+      res.status(HttpStatus.FORBIDDEN).json({ success: false, message: 'Forbidden' })
       return
     }
 
@@ -58,7 +59,7 @@ router.get('/conversations/:id/messages', async (req: Request, res: Response, ne
     const limit    = parseInt(req.query.limit as string ?? '50')
     const messages = await chatRepo.getMessages(req.params.id, limit, before)
 
-    res.json({ success: true, data: messages })
+    res.status(HttpStatus.OK).json({ success: true, data: messages })
   } catch (err) { next(err) }
 })
 
@@ -66,14 +67,14 @@ router.get('/conversations/:id/messages', async (req: Request, res: Response, ne
 router.get('/conversations/:id/pinned', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const messages = await chatRepo.getPinnedMessages(req.params.id)
-    res.json({ success: true, data: messages })
+    res.status(HttpStatus.OK).json({ success: true, data: messages })
   } catch (err) { next(err) }
 })
 
 // GET /chat/presence/:userId — check if a user is online
 router.get('/presence/:userId', (req: Request, res: Response) => {
   const presence = PresenceStore.getPresence(req.params.userId)
-  res.json({
+  res.status(HttpStatus.OK).json({
     success: true,
     data: {
       userId:   req.params.userId,
@@ -86,7 +87,7 @@ router.get('/presence/:userId', (req: Request, res: Response) => {
 // GET /chat/health
 router.get('/health', (_req, res) => {
   const stats = PresenceStore.getStats()
-  res.json({ success: true, ...stats })
+  res.status(HttpStatus.OK).json({ success: true, ...stats })
 })
 
 export default router

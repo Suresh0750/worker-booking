@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
-import { logger } from '../../infrastructure/config/logger'
+import { logger }     from '../../infrastructure/config/logger'
+import { HttpStatus } from '../../infrastructure/constants/HttpStatus'
 
 export interface JwtPayload {
   userId: string
@@ -16,7 +17,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
   const authHeader = req.headers.authorization
 
   if (!authHeader?.startsWith('Bearer ')) {
-    res.status(401).json({ success: false, message: 'Missing or invalid authorization header' })
+    res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: 'Missing or invalid authorization header' })
     return
   }
 
@@ -37,10 +38,10 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
     next()
   } catch (err: any) {
     if (err.name === 'TokenExpiredError') {
-      res.status(401).json({ success: false, message: 'Token expired — please refresh' })
+      res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: 'Token expired — please refresh' })
       return
     }
-    res.status(401).json({ success: false, message: 'Invalid token' })
+    res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: 'Invalid token' })
   }
 }
 
@@ -72,7 +73,7 @@ export const requireRole = (...roles: string[]) => {
     const userRole = req.headers['x-user-role'] as string
 
     if (!userRole || !roles.map((r) => r.toUpperCase()).includes(userRole.toUpperCase())) {
-      res.status(403).json({
+      res.status(HttpStatus.FORBIDDEN).json({
         success: false,
         message: `Access denied. Required role: ${roles.join(' or ')}`,
       })

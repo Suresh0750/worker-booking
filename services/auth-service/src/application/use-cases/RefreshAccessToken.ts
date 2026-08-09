@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import { v4 as uuid } from 'uuid'
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { IAuthRepository } from '../../domain/interfaces/IAuthRepository'
 import { RefreshTokenRequestDto, RefreshResponseDto } from '../dtos/AuthDto'
 
@@ -14,7 +15,7 @@ export class RefreshAccessToken {
       // Delete expired token if found
       if (record) await this.authRepo.deleteRefreshToken(dto.refreshToken)
       const err = new Error('Invalid or expired refresh token')
-      ;(err as any).status = 401
+      ;(err as any).status = HttpStatus.UNAUTHORIZED
       throw err
     }
 

@@ -1,3 +1,4 @@
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { IAddressRepository } from '../../domain/interfaces/IAddressRepository'
 import { IUserRepository } from '../../domain/interfaces/IUserRepository'
 import { CreateAddressDto, AddressResponseDto } from '../dtos/UserDto'
@@ -13,7 +14,7 @@ export class AddAddress {
     const user = await this.userRepo.findById(userId)
     if (!user) {
       const err = new Error('User not found')
-      ;(err as any).status = 404
+      ;(err as any).status = HttpStatus.NOT_FOUND
       throw err
     }
 

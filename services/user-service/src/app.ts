@@ -7,6 +7,7 @@ import userRoutes     from './presentation/routes/userRoutes'
 import internalRoutes from './presentation/routes/internalRoutes'
 import { errorHandler, notFoundHandler } from './presentation/middlewares/index'
 import { logger } from './infrastructure/config/logger'
+import { HttpStatus } from './domain/enums/HttpStatus'
 
 const app  = express()
 const PORT = process.env.PORT ?? 3002
@@ -34,7 +35,7 @@ app.use(limiter)
 
 // ── Health check ──────────────────────────────────────────
 app.get('/health', (req, res) => {
-  res.status(200).json({
+  res.status(HttpStatus.OK).json({
     status:    'ok',
     service:   'user-service',
     uptime:    process.uptime(),

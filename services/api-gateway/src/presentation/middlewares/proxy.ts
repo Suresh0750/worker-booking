@@ -1,6 +1,7 @@
 import { createProxyMiddleware, Options } from 'http-proxy-middleware'
 import { Request }                        from 'express'
 import { logger }                         from '../../infrastructure/config/logger'
+import { HttpStatus }                     from '../../infrastructure/constants/HttpStatus'
 
 // Creates a proxy to a downstream service
 // Strips the gateway prefix and forwards the rest of the path
@@ -23,7 +24,7 @@ export const createProxy = (target: string, pathRewrite?: Record<string, string>
 
       error: (err, _req, res: any) => {
         logger.error(`Proxy error to ${target}: ${err.message}`)
-        res.status(502).json({
+        res.status(HttpStatus.BAD_GATEWAY).json({
           success: false,
           message: 'Service temporarily unavailable. Please try again.',
         })

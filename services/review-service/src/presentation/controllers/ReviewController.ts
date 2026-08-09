@@ -7,6 +7,7 @@ import {
   GetBookingReview,
 } from '../../application/use-cases/ReviewUseCases'
 import { PrismaReviewRepository } from '../../infrastructure/repositories/PrismaReviewRepository'
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { BookingClient, WorkerClient } from '../../infrastructure/services/ServiceClients'
 
 // ── Compose dependencies ──────────────────────────────────
@@ -26,7 +27,7 @@ export class ReviewController {
     try {
       const userId = (req as any).userId
       const result = await submitReview.execute(userId, req.body)
-      res.status(201).json({ success: true, data: result })
+      res.status(HttpStatus.CREATED).json({ success: true, data: result })
     } catch (err) {
       next(err)
     }
@@ -40,7 +41,7 @@ export class ReviewController {
         page:  req.query.page  ? parseInt(req.query.page  as string) : undefined,
         limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
       })
-      res.status(200).json({ success: true, ...result })
+      res.status(HttpStatus.OK).json({ success: true, ...result })
     } catch (err) {
       next(err)
     }
@@ -50,7 +51,7 @@ export class ReviewController {
   static async getByBooking(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await getBookingReview.execute(req.params.bookingId)
-      res.status(200).json({ success: true, data: result })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) {
       next(err)
     }
@@ -63,7 +64,7 @@ export class ReviewController {
         page:  req.query.page  ? parseInt(req.query.page  as string) : undefined,
         limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
       })
-      res.status(200).json({ success: true, ...result })
+      res.status(HttpStatus.OK).json({ success: true, ...result })
     } catch (err) {
       next(err)
     }
@@ -73,7 +74,7 @@ export class ReviewController {
   static async getWorkerStats(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await getWorkerStats.execute(req.params.workerId)
-      res.status(200).json({ success: true, data: result })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) {
       next(err)
     }

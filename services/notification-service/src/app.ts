@@ -7,6 +7,7 @@ import rateLimit      from 'express-rate-limit'
 import { Server as SocketServer } from 'socket.io'
 
 import internalRoutes from './presentation/routes/internalRoutes'
+import { HttpStatus } from './domain/enums/HttpStatus'
 import { errorHandler, notFoundHandler } from './presentation/middlewares/index'
 import { setDispatcher } from './presentation/controllers/NotificationController'
 
@@ -64,7 +65,7 @@ app.use(limiter)
 
 // ── Health check ──────────────────────────────────────────
 app.get('/health', (_req, res) => {
-  res.status(200).json({
+  res.status(HttpStatus.OK).json({
     status:       'ok',
     service:      'notification-service',
     socketClients: io.engine.clientsCount,

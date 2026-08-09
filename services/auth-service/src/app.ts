@@ -5,6 +5,7 @@ import cors           from 'cors'
 import rateLimit      from 'express-rate-limit'
 import authRoutes     from './presentation/routes/authRoutes'
 import internalRoutes from './presentation/routes/internalRoutes'
+import { HttpStatus } from './domain/enums/HttpStatus'
 import { errorHandler, notFoundHandler } from './presentation/middlewares/errorHandler'
 import { logger } from './infrastructure/config/logger'
 
@@ -42,7 +43,7 @@ app.use(limiter)
 
 // ── Health check ─────────────────────────────────────────
 app.get('/health', (req, res) => {
-  res.status(200).json({
+  res.status(HttpStatus.OK).json({
     status:  'ok',
     service: 'auth-service',
     uptime:  process.uptime(),

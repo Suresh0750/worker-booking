@@ -5,6 +5,7 @@ import helmet  from 'helmet'
 import cors    from 'cors'
 import { Server as SocketServer } from 'socket.io'
 import chatRoutes          from './presentation/routes/chatRoutes'
+import { HttpStatus }      from './domain/enums/HttpStatus'
 import { setupChatGateway } from './presentation/gateways/ChatGateway'
 import { logger }           from './infrastructure/config/logger'
 
@@ -32,7 +33,7 @@ app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(',') ?? '*', credentia
 app.use(express.json({ limit: '10kb' }))
 
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', service: 'chat-service', timestamp: new Date() })
+  res.status(HttpStatus.OK).json({ status: 'ok', service: 'chat-service', timestamp: new Date() })
 })
 
 app.use('/chat', chatRoutes)

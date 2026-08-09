@@ -1,3 +1,4 @@
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { IBookingRepository } from '../../domain/interfaces/IBookingRepository'
 import {
   BookingResponseDto,
@@ -17,14 +18,14 @@ export class GetBooking {
 
     if (!booking) {
       const err = new Error('Booking not found')
-      ;(err as any).status = 404
+      ;(err as any).status = HttpStatus.NOT_FOUND
       throw err
     }
 
     // Only user and worker on the booking can see it
     if (booking.userId !== requesterId && booking.workerId !== requesterId) {
       const err = new Error('Forbidden')
-      ;(err as any).status = 403
+      ;(err as any).status = HttpStatus.FORBIDDEN
       throw err
     }
 
@@ -110,20 +111,20 @@ export class SendMessage {
 
     if (!booking) {
       const err = new Error('Booking not found')
-      ;(err as any).status = 404
+      ;(err as any).status = HttpStatus.NOT_FOUND
       throw err
     }
 
     if (booking.userId !== senderId && booking.workerId !== senderId) {
       const err = new Error('Forbidden')
-      ;(err as any).status = 403
+      ;(err as any).status = HttpStatus.FORBIDDEN
       throw err
     }
 
     // Cannot message on cancelled or if not yet accepted
     if (booking.status === 'CANCELLED') {
       const err = new Error('Cannot send message on a cancelled booking')
-      ;(err as any).status = 400
+      ;(err as any).status = HttpStatus.BAD_REQUEST
       throw err
     }
 
@@ -149,19 +150,19 @@ export class UpdateBookingPrice {
 
     if (!booking) {
       const err = new Error('Booking not found')
-      ;(err as any).status = 404
+      ;(err as any).status = HttpStatus.NOT_FOUND
       throw err
     }
 
     if (booking.userId !== requesterId && booking.workerId !== requesterId) {
       const err = new Error('Forbidden')
-      ;(err as any).status = 403
+      ;(err as any).status = HttpStatus.FORBIDDEN
       throw err
     }
 
     if (!['PENDING', 'ACCEPTED'].includes(booking.status)) {
       const err = new Error('Price can only be updated before work starts')
-      ;(err as any).status = 400
+      ;(err as any).status = HttpStatus.BAD_REQUEST
       throw err
     }
 

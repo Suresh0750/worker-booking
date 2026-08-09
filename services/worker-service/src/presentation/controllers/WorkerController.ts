@@ -6,6 +6,7 @@ import { UpdateWorkerProfile, SetWorkerCategories } from '../../application/use-
 import { SearchWorkers }                   from '../../application/use-cases/SearchWorkers'
 import { UpdateWorkerRating }              from '../../application/use-cases/UpdateWorkerRating'
 import { AddPortfolioItem, DeletePortfolioItem, AddWorkerAddress } from '../../application/use-cases/PortfolioUseCases'
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { PrismaWorkerRepository }          from '../../infrastructure/repositories/PrismaWorkerRepository'
 import {
   PrismaCategoryRepository,
@@ -42,7 +43,7 @@ export class WorkerController {
         categoryId: categoryId as string | undefined,
         city:       city       as string | undefined,
       })
-      res.status(200).json({ success: true, data: result, count: result.length })
+      res.status(HttpStatus.OK).json({ success: true, data: result, count: result.length })
     } catch (err) { next(err) }
   }
 
@@ -50,7 +51,7 @@ export class WorkerController {
   static async getCategories(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await categoryRepo.findAll()
-      res.status(200).json({ success: true, data: result })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
@@ -59,7 +60,7 @@ export class WorkerController {
     try {
       const workerId = (req as any).userId
       const result   = await getWorkerProfile.execute(workerId)
-      res.status(200).json({ success: true, data: result })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
@@ -67,7 +68,7 @@ export class WorkerController {
   static async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await getWorkerProfile.execute(req.params.id)
-      res.status(200).json({ success: true, data: result })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
@@ -76,7 +77,7 @@ export class WorkerController {
     try {
       const workerId = (req as any).userId
       const result   = await updateWorkerProfile.execute(workerId, req.body)
-      res.status(200).json({ success: true, data: result })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
@@ -85,7 +86,7 @@ export class WorkerController {
     try {
       const workerId = (req as any).userId
       await setCategories.execute(workerId, req.body)
-      res.status(200).json({ success: true, message: 'Categories updated' })
+      res.status(HttpStatus.OK).json({ success: true, message: 'Categories updated' })
     } catch (err) { next(err) }
   }
 
@@ -94,7 +95,7 @@ export class WorkerController {
     try {
       const workerId = (req as any).userId
       const result   = await addAddress.execute(workerId, req.body)
-      res.status(201).json({ success: true, data: result })
+      res.status(HttpStatus.CREATED).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
@@ -103,7 +104,7 @@ export class WorkerController {
     try {
       const workerId = (req as any).userId
       const result   = await portfolioRepo.findByWorkerId(workerId)
-      res.status(200).json({ success: true, data: result })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
@@ -112,7 +113,7 @@ export class WorkerController {
     try {
       const workerId = (req as any).userId
       const result   = await addPortfolio.execute(workerId, req.body)
-      res.status(201).json({ success: true, data: result })
+      res.status(HttpStatus.CREATED).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
@@ -121,7 +122,7 @@ export class WorkerController {
     try {
       const workerId = (req as any).userId
       await deletePortfolio.execute(req.params.id, workerId)
-      res.status(200).json({ success: true, message: 'Portfolio item deleted' })
+      res.status(HttpStatus.OK).json({ success: true, message: 'Portfolio item deleted' })
     } catch (err) { next(err) }
   }
 
@@ -136,12 +137,12 @@ export class WorkerController {
           const payload = data as Partial<CreateWorkerProfileDto>
           if (!payload?.userId || typeof payload.userId !== 'string') {
             const err = new Error('userId is required')
-            ;(err as any).status = 400
+            ;(err as any).status = HttpStatus.BAD_REQUEST
             throw err
           }
           if (!payload?.email || typeof payload.email !== 'string') {
             const err = new Error('email is required')
-            ;(err as any).status = 400
+            ;(err as any).status = HttpStatus.BAD_REQUEST
             throw err
           }
           return createWorkerProfile.execute(payload as CreateWorkerProfileDto)
@@ -160,12 +161,12 @@ export class WorkerController {
 
       const handler = handlers[eventType]
       if (!handler) {
-        res.status(400).json({ success: false, message: `Unknown eventType: ${eventType}` })
+        res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: `Unknown eventType: ${eventType}` })
         return
       }
 
       const result = await handler()
-      res.status(200).json({ success: true, data: result ?? null })
+      res.status(HttpStatus.OK).json({ success: true, data: result ?? null })
     } catch (err) { next(err) }
   }
 }

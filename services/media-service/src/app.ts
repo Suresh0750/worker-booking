@@ -6,6 +6,7 @@ import rateLimit    from 'express-rate-limit'
 import mediaRoutes  from './presentation/routes/mediaRoutes'
 import { errorHandler, notFoundHandler } from './presentation/middlewares/index'
 import { logger } from './infrastructure/config/logger'
+import { HttpStatus } from './domain/enums/HttpStatus'
 
 const app  = express()
 const PORT = process.env.PORT ?? 3006
@@ -44,7 +45,7 @@ app.use(generalLimiter)
 
 // ── Health check ──────────────────────────────────────────
 app.get('/health', (_req, res) => {
-  res.status(200).json({
+  res.status(HttpStatus.OK).json({
     status:    'ok',
     service:   'media-service',
     uptime:    process.uptime(),

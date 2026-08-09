@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { body, query, validationResult } from 'express-validator'
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { logger } from '../../infrastructure/config/logger'
 
 // ── Validation chains ─────────────────────────────────────
@@ -41,7 +42,7 @@ export const setCategoriesValidation = [
 export const validateRequest = (req: Request, res: Response, next: NextFunction): void => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
-    res.status(400).json({
+    res.status(HttpStatus.BAD_REQUEST).json({
       success: false,
       errors: errors.array().map((e) => ({ field: e.type, message: e.msg })),
     })
@@ -54,7 +55,7 @@ export const validateRequest = (req: Request, res: Response, next: NextFunction)
 export const verifyInternalSecret = (req: Request, res: Response, next: NextFunction): void => {
   const secret = req.headers['x-internal-secret']
   if (!secret || secret !== process.env.INTERNAL_SECRET) {
-    res.status(403).json({ success: false, message: 'Forbidden' })
+    res.status(HttpStatus.FORBIDDEN).json({ success: false, message: 'Forbidden' })
     return
   }
   next()
@@ -66,7 +67,7 @@ export const extractUser = (req: Request, res: Response, next: NextFunction): vo
   const userRole = req.headers['x-user-role'] as string
 
   if (!userId) {
-    res.status(401).json({ success: false, message: 'Unauthorized' })
+    res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: 'Unauthorized' })
     return
   }
 
@@ -79,9 +80,9 @@ export const extractUser = (req: Request, res: Response, next: NextFunction): vo
 export interface AppError extends Error { status?: number }
 
 export const errorHandler = (err: AppError, req: Request, res: Response, next: NextFunction): void => {
-  const status  = err.status ?? 500
+  const status  = err.status ?? HttpStatus.INTERNAL_SERVER_ERROR
   const message = err.message ?? 'Internal server error'
-  if (status === 500) logger.error(`Unhandled error: ${err.stack}`)
+  if (status === HttpStatus.INTERNAL_SERVER_ERROR) logger.error(`Unhandled error: ${err.stack}`)
   res.status(status).json({
     success: false,
     message,
@@ -90,5 +91,5 @@ export const errorHandler = (err: AppError, req: Request, res: Response, next: N
 }
 
 export const notFoundHandler = (req: Request, res: Response): void => {
-  res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` })
+  res.status(HttpStatus.NOT_FOUND).json({ success: false, message: `Route ${req.originalUrl} not found` })
 }

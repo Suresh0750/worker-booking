@@ -1,3 +1,4 @@
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { IWorkerRepository } from '../../domain/interfaces/IWorkerRepository'
 import { WorkerProfileDto }   from '../dtos/WorkerDto'
 
@@ -9,7 +10,7 @@ export class GetWorkerProfile {
 
     if (!worker) {
       const err = new Error('Worker not found')
-      ;(err as any).status = 404
+      ;(err as any).status = HttpStatus.NOT_FOUND
       throw err
     }
 

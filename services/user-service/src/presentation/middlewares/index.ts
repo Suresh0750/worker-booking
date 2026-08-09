@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { logger } from '../../infrastructure/config/logger'
 
 // ── Internal Secret ───────────────────────────────────────
@@ -9,7 +10,7 @@ export const verifyInternalSecret = (
 ): void => {
   const secret = req.headers['x-internal-secret']
   if (!secret || secret !== process.env.INTERNAL_SECRET) {
-    res.status(403).json({ success: false, message: 'Forbidden' })
+    res.status(HttpStatus.FORBIDDEN).json({ success: false, message: 'Forbidden' })
     return
   }
   next()
@@ -26,7 +27,7 @@ export const extractUser = (
   const role   = req.headers['x-user-role'] as string
 
   if (!userId) {
-    res.status(401).json({ success: false, message: 'Unauthorized' })
+    res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: 'Unauthorized' })
     return
   }
 
@@ -46,10 +47,10 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ): void => {
-  const status  = err.status ?? 500
+  const status  = err.status ?? HttpStatus.INTERNAL_SERVER_ERROR
   const message = err.message ?? 'Internal server error'
 
-  if (status === 500) logger.error(`Unhandled error: ${err.stack}`)
+  if (status === HttpStatus.INTERNAL_SERVER_ERROR) logger.error(`Unhandled error: ${err.stack}`)
 
   res.status(status).json({
     success: false,
@@ -59,5 +60,5 @@ export const errorHandler = (
 }
 
 export const notFoundHandler = (req: Request, res: Response): void => {
-  res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` })
+  res.status(HttpStatus.NOT_FOUND).json({ success: false, message: `Route ${req.originalUrl} not found` })
 }

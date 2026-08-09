@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import { CreateProfile }    from '../../application/use-cases/CreateProfile'
 import { GetProfile }       from '../../application/use-cases/GetProfile'
 import { UpdateProfile }    from '../../application/use-cases/UpdateProfile'
+import { HttpStatus }       from '../../domain/enums/HttpStatus'
 import { PrismaUserRepository }    from '../../infrastructure/repositories/PrismaUserRepository'
 import { PrismaAddressRepository } from '../../infrastructure/repositories/PrismaAddressRepository'
 
@@ -18,7 +19,7 @@ export class UserController {
     try {
       const userId = (req as any).userId
       const result = await getProfile.execute(userId)
-      res.status(200).json({ success: true, data: result })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
@@ -26,7 +27,7 @@ export class UserController {
   static async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await getProfile.execute(req.params.id)
-      res.status(200).json({ success: true, data: result })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
@@ -35,7 +36,7 @@ export class UserController {
     try {
       const userId = (req as any).userId
       const result = await updateProfile.execute(userId, req.body)
-      res.status(200).json({ success: true, data: result })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
@@ -45,12 +46,12 @@ export class UserController {
       const { eventType, data } = req.body
 
       if (eventType !== 'create_profile') {
-        res.status(400).json({ success: false, message: `Unknown eventType: ${eventType}` })
+        res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: `Unknown eventType: ${eventType}` })
         return
       }
 
       const result = await createProfile.execute(data)
-      res.status(201).json({ success: true, data: result })
+      res.status(HttpStatus.CREATED).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 }

@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { verifyInternalSecret } from '../middlewares/index'
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { PrismaBookingRepository } from '../../infrastructure/repositories/PrismaBookingRepository'
 
 const router      = Router()
@@ -13,14 +14,14 @@ router.post('/bookings/verify', verifyInternalSecret, async (req, res, next) => 
     const { bookingId, userId } = req.body
 
     if (!bookingId || !userId) {
-      res.status(400).json({ success: false, message: 'bookingId and userId are required' })
+      res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: 'bookingId and userId are required' })
       return
     }
 
     const booking = await bookingRepo.findById(bookingId)
 
     if (!booking) {
-      res.status(404).json({ success: false, message: 'Booking not found' })
+      res.status(HttpStatus.NOT_FOUND).json({ success: false, message: 'Booking not found' })
       return
     }
 
@@ -30,7 +31,7 @@ router.post('/bookings/verify', verifyInternalSecret, async (req, res, next) => 
     const isEligible =
       booking.status === 'COMPLETED' && booking.userId === userId
 
-    res.status(200).json({
+    res.status(HttpStatus.OK).json({
       success: true,
       data: {
         isEligible,

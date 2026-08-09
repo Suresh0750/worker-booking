@@ -1,3 +1,4 @@
+import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { IWorkerRepository } from '../../domain/interfaces/IWorkerRepository'
 
 export interface UpdateRatingDto {
@@ -16,7 +17,7 @@ export class UpdateWorkerRating {
     const worker = await this.workerRepo.findById(dto.workerId)
     if (!worker) {
       const err = new Error('Worker not found')
-      ;(err as any).status = 404
+      ;(err as any).status = HttpStatus.NOT_FOUND
       throw err
     }
 

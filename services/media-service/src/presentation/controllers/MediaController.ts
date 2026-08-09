@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { UploadMedia }              from '../../application/use-cases/UploadMedia'
 import { DeleteMedia, GetMyMedia }  from '../../application/use-cases/MediaUseCases'
+import { HttpStatus }              from '../../domain/enums/HttpStatus'
 import { PrismaMediaRepository }   from '../../infrastructure/repositories/PrismaMediaRepository'
 import { S3Service }               from '../../infrastructure/services/S3Service'
 import { WorkerClient }            from '../../infrastructure/services/WorkerClient'
@@ -22,14 +23,14 @@ export class MediaController {
       const workerId = (req as any).userId
 
       if (!req.file) {
-        res.status(400).json({ success: false, message: 'No file provided' })
+        res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: 'No file provided' })
         return
       }
 
       const caption = req.body.caption as string | undefined
       const result  = await uploadMedia.execute(workerId, req.file, caption)
 
-      res.status(201).json({ success: true, data: result })
+      res.status(HttpStatus.CREATED).json({ success: true, data: result })
     } catch (err) {
       next(err)
     }
@@ -40,7 +41,7 @@ export class MediaController {
     try {
       const workerId = (req as any).userId
       const result   = await getMyMedia.execute(workerId)
-      res.status(200).json({ success: true, data: result, count: result.length })
+      res.status(HttpStatus.OK).json({ success: true, data: result, count: result.length })
     } catch (err) {
       next(err)
     }
@@ -51,7 +52,7 @@ export class MediaController {
     try {
       const workerId = (req as any).userId
       await deleteMedia.execute(req.params.id, workerId)
-      res.status(200).json({ success: true, message: 'File deleted successfully' })
+      res.status(HttpStatus.OK).json({ success: true, message: 'File deleted successfully' })
     } catch (err) {
       next(err)
     }
