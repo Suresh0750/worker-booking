@@ -8,115 +8,76 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(uuid())
+  id             String         @id @default(uuid())
+  fullName       String         @map("full_name")
+  email          String         @unique
+  phone          String         @unique
+  secondaryPhone String?        @map("secondary_phone")
+  password       String
+  role           UserRole
+  gender         String?
+  dob            DateTime?
+  profileImage   String?        @map("profile_image")
+  isBlocked      Boolean        @default(false) @map("is_blocked")
+  authProvider   String?        @map("auth_provider")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
 
-  fullName    String   @map("full_name")
-  email       String   @unique
-  phone       String   @unique
-  secondaryPhone String?  @map("secondary_phone")
-  password    String
-
-  role        UserRole
-  gender      String?
-  dob         DateTime?
-
-  profileImage String? @map("profile_image")
-
-  isBlocked   Boolean  @default(false) @map("is_blocked")
-
-  authProvider String? @map("auth_provider")
-
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  refreshTokens RefreshToken[]
 
   @@map("users")
 }
 
+
 model RefreshToken {
-  id          String    @id @default(uuid())
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  ipAddress String?   @map("ip_address")
+  userAgent String?   @map("user_agent")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 
-  userId      String    @map("user_id")
-
-  tokenHash   String    @unique @map("token_hash")
-
-  ipAddress   String?   @map("ip_address")
-  userAgent   String?   @map("user_agent")
-
-  expiresAt   DateTime  @map("expires_at")
-  revokedAt   DateTime? @map("revoked_at")
-
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  user User @relation(
-    fields: [userId],
-    references: [id],
-    onDelete: Cascade
-  )
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("refresh_tokens")
 }
 
+model Otp {
+  id          String     @id @default(uuid())
+  identifier  String
+  channel     OtpChannel
+  purpose     OtpPurpose
+  codeHash    String     @map("code_hash")
+  expiresAt   DateTime   @map("expires_at")
+  verifiedAt  DateTime?  @map("verified_at")
+  attempts    Int        @default(0)
+  maxAttempts Int        @default(5) @map("max_attempts")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
 
-model UserAddress {
-  id        String  @id @default(uuid())
-
-  userId    String  @map("user_id")
-
-  address   String?
-  city      String?
-  state     String?
-  pincode   String?
-
-  latitude  Decimal?
-  longitude Decimal?
-
-  label     String?
-  isDefault Boolean @default(false) @map("is_default")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  user User @relation(
-    fields: [userId],
-    references: [id],
-    onDelete: Cascade
-  )
-
-  @@index([userId])
-  @@map("user_addresses")
-}
-
-model WorkerProfile {
-  id                  String   @id @default(uuid())
-
-  userId              String   @map("user_id")
-
-  about               String?
-  maxTravelDistance   Int?     @map("max_travel_distance")
-
-  isApproved          Boolean  @default(false) @map("is_approved")
-  profileCompleted    Boolean  @default(false) @map("profile_completed")
-
-  baseLatitude        Decimal? @map("base_latitude")
-  baseLongitude       Decimal? @map("base_longitude")
-
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
-
-  user User @relation(
-    fields: [userId],
-    references: [id],
-    onDelete: Cascade
-  )
-
-  @@unique([userId])
-  @@map("worker_profiles")
+  @@index([identifier, purpose])
+  @@index([expiresAt])
+  @@map("otps")
 }
 
 enum UserRole {
   CUSTOMER
   WORKER
   ADMIN
+}
+
+enum OtpPurpose {
+  EMAIL_VERIFICATION
+  PHONE_VERIFICATION
+  PASSWORD_RESET
+  LOGIN
+}
+
+enum OtpChannel {
+  EMAIL
+  SMS
 }
