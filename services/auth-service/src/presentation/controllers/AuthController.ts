@@ -3,17 +3,21 @@ import { RegisterUser }       from '../../application/use-cases/RegisterUser'
 import { LoginUser }          from '../../application/use-cases/LoginUser'
 import { RefreshAccessToken } from '../../application/use-cases/RefreshAccessToken'
 import { LogoutUser }         from '../../application/use-cases/LogoutUser'
+import { Otp }               from '../../application/use-cases/Otp'
 import { HttpStatus }         from '../../domain/enums/HttpStatus'
 import authRepo  from '../../infrastructure/repositories/PrismaAuthRepository'
+import otpRepo   from '../../infrastructure/repositories/PrismaOtpRepository'
+import otpDeliveryService from '../../infrastructure/services/OtpDeliveryService'
 import userServiceClient    from '../../infrastructure/services/UserServiceClient'
 import workerServiceClient   from '../../infrastructure/services/WorkerServiceClient'
 
 // Compose dependencies once — repository + external clients injected into use cases
 
-const registerUser       = new RegisterUser(authRepo, userServiceClient, workerServiceClient)
+const registerUser       = new RegisterUser(authRepo, userServiceClient, workerServiceClient, otpRepo)
 const loginUser          = new LoginUser(authRepo)
 const refreshAccessToken = new RefreshAccessToken(authRepo)
 const logoutUser         = new LogoutUser(authRepo)
+const otp = new Otp(authRepo, otpRepo, otpDeliveryService)
 
 export class AuthController {
   // POST /auth/register
@@ -40,6 +44,26 @@ export class AuthController {
   static async refresh(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await refreshAccessToken.execute(req.body)
+      res.status(HttpStatus.OK).json({ success: true, data: result })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  // POST /auth/send-otp
+  static async sendOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await otp.send(req.body)
+      res.status(HttpStatus.OK).json({ success: true, data: result })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  // POST /auth/verify-otp
+  static async verifyOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await otp.verify(req.body)
       res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) {
       next(err)

@@ -6,6 +6,8 @@ import {
   refreshTokenSchema,
   logoutSchema,
   idParamsSchema,
+  sendOtpSchema,
+  verifyOtpSchema,
 } from '../schemas/AuthSchemas'
 
 // ── Request types — derived from Zod schemas (single source of truth) ──
@@ -14,6 +16,8 @@ export type LoginRequestDto        = z.infer<typeof loginSchema>
 export type RefreshTokenRequestDto = z.infer<typeof refreshTokenSchema>
 export type LogoutRequestDto       = z.infer<typeof logoutSchema>
 export type IdParamsDto            = z.infer<typeof idParamsSchema>
+export type SendOtpRequestDto      = z.infer<typeof sendOtpSchema>
+export type VerifyOtpRequestDto    = z.infer<typeof verifyOtpSchema>
 
 // ── Response DTOs ─────────────────────────────────────────
 export interface AuthUserDto {
@@ -35,4 +39,14 @@ export interface LoginResponseDto {
 export interface RefreshResponseDto {
   accessToken:  string
   refreshToken: string
+}
+
+export interface SendOtpResponseDto {
+  sent: boolean
+  expiresIn: number
+  debugCode?: string
+}
+
+export interface VerifyOtpResponseDto {
+  verified: boolean
 }

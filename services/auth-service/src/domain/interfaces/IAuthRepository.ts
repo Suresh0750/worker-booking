@@ -17,6 +17,7 @@ export interface SaveRefreshTokenInput {
 export interface IAuthRepository {
   // User methods
   findByEmail(email: string): Promise<UserEntity | null>
+  findByPhone(phone: string): Promise<UserEntity | null>
   findById(id: string): Promise<UserEntity | null>
   create(data: CreateUserInput): Promise<UserEntity>
   deactivate(id: string): Promise<void>

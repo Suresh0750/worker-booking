@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 import { HttpStatus } from '../../domain/enums/HttpStatus'
 import { IAuthRepository } from '../../domain/interfaces/IAuthRepository'
+import { IOtpRepository } from '../../domain/interfaces/IOtpRepository'
 import { IUserServiceClient } from '../../domain/interfaces/IUserServiceClient'
 import { IWorkerServiceClient } from '../../domain/interfaces/IWorkerServiceClient'
 import { RegisterRequestDto, RegisterResponseDto } from '../dtos/AuthDto'
@@ -10,7 +11,8 @@ export class RegisterUser {
   constructor(
     private readonly authRepo: IAuthRepository,
     private readonly userServiceClient: IUserServiceClient,
-    private readonly workerServiceClient: IWorkerServiceClient
+    private readonly workerServiceClient: IWorkerServiceClient,
+    private readonly otpRepo: IOtpRepository
   ) {}
 
   async execute(dto: RegisterRequestDto): Promise<RegisterResponseDto> {
@@ -22,12 +24,27 @@ export class RegisterUser {
       throw err
     }
 
-    // 2. Hash password — cost 12 is secure, not too slow
+    // 2. Require email & phone to be OTP-verified before account creation
+    const emailOtp = await this.otpRepo.findLatestByIdentifierAndPurpose(dto.email, 'EMAIL_VERIFICATION')
+    if (!emailOtp?.verifiedAt) {
+      const err = new Error('Email is not verified. Please verify your email with the OTP first')
+      ;(err as any).status = HttpStatus.BAD_REQUEST
+      throw err
+    }
+
+    const phoneOtp = await this.otpRepo.findLatestByIdentifierAndPurpose(dto.phone, 'PHONE_VERIFICATION')
+    if (!phoneOtp?.verifiedAt) {
+      const err = new Error('Phone is not verified. Please verify your phone with the OTP first')
+      ;(err as any).status = HttpStatus.BAD_REQUEST
+      throw err
+    }
+
+    // 3. Hash password — cost 12 is secure, not too slow
     const passwordHash = await bcrypt.hash(dto.password, 12)
 
     const role = (dto.role ?? IUserRole.CUSTOMER).toUpperCase()
 
-    // 3. Save credentials to auth_db — ONLY what Auth owns
+    // 4. Save credentials to auth_db — ONLY what Auth owns
     const user = await this.authRepo.create({
       email:        dto.email,
       passwordHash,
@@ -36,7 +53,7 @@ export class RegisterUser {
       phone:        dto.phone,
     })
 
-    // // 4. Notify User Service to create the profile record
+    // // 5. Notify User Service to create the profile record
     // // Non-blocking — if User Service is down, auth still succeeds
     // // When Kafka is added, this becomes: producer.publish('user.registered', payload)
     // await this.userServiceClient.createProfile({
@@ -45,7 +62,7 @@ export class RegisterUser {
     //   role:   user.role,
     // })
 
-    // // 5. Worker Service — persist workers row (same id as auth user) when role is WORKER
+    // // 6. Worker Service — persist workers row (same id as auth user) when role is WORKER
     // if (role === 'WORKER') {
     //   await this.workerServiceClient.createWorkerProfile({
     //     userId:           user.id,

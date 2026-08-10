@@ -7,7 +7,6 @@ export function hashToken(token: string): string {
 }
 
 export function toDomainRole(role: UserRole): Role {
-  if (role === 'CUSTOMER') return 'USER'
   return role as Role
 }
 

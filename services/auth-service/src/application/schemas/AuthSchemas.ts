@@ -1,10 +1,11 @@
+import { IUserRole } from '../../domain/entities/User'
 import { z } from 'zod'
 
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/
 const PHONE_REGEX    = /^\+?[1-9]\d{7,14}$/
 
-const roleSchema = z.enum(['USER', 'WORKER'], {
-  errorMap: () => ({ message: 'Role must be USER or WORKER' }),
+const roleSchema = z.enum([IUserRole.CUSTOMER, IUserRole.WORKER], {
+  errorMap: () => ({ message: 'Role must be CUSTOMER or WORKER' }),
 })
 
 
@@ -36,6 +37,8 @@ export const registerSchema = z
       .regex(PHONE_REGEX, 'Valid phone number required'),
 
     role: roleSchema.optional(),
+    isVerifyPhone : z.boolean(),
+    isVerifyEmail : z.boolean(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
@@ -45,6 +48,27 @@ export const loginSchema = z.object({
   email:    z.string().email('Valid email is required'),
   password: z.string().min(1, 'Password is required'),
 })
+
+export const sendOtpSchema = z
+  .object({
+    email: z.string().email('Valid email is required').optional(),
+    phone: z.string().regex(PHONE_REGEX, 'Valid phone number required').optional(),
+  })
+  .refine((d) => d.email || d.phone, {
+    message: 'Provide an email or phone number',
+    path: ['email'],
+  })
+
+export const verifyOtpSchema = z
+  .object({
+    email: z.string().email('Valid email is required').optional(),
+    phone: z.string().regex(PHONE_REGEX, 'Valid phone number required').optional(),
+    otp:   z.string().regex(/^\d{6}$/, 'OTP must be 6 digits'),
+  })
+  .refine((d) => d.email || d.phone, {
+    message: 'Provide an email or phone number',
+    path: ['email'],
+  })
 
 export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required'),
@@ -64,6 +88,8 @@ export const idParamsSchema = z.object({
 // ── Inferred request types ────────────────────────────────
 export type RegisterRequestType     = z.infer<typeof registerSchema>
 export type LoginRequestType        = z.infer<typeof loginSchema>
+export type SendOtpRequestType      = z.infer<typeof sendOtpSchema>
+export type VerifyOtpRequestType    = z.infer<typeof verifyOtpSchema>
 export type RefreshTokenRequestType = z.infer<typeof refreshTokenSchema>
 export type LogoutRequestType       = z.infer<typeof logoutSchema>
 export type VerifyTokenRequestType  = z.infer<typeof verifyTokenSchema>

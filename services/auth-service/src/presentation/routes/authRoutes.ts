@@ -8,6 +8,8 @@ import {
   refreshTokenSchema,
   logoutSchema,
   verifyTokenSchema,
+  sendOtpSchema,
+  verifyOtpSchema,
 } from '../../application/schemas/AuthSchemas'
 
 const router = Router()
@@ -24,6 +26,20 @@ router.post(
   '/login',
   validateRequest({ body: loginSchema }),
   asyncHandler(AuthController.login)
+)
+
+// POST /auth/send-otp
+router.post(
+  '/send-otp',
+  validateRequest({ body: sendOtpSchema }),
+  asyncHandler(AuthController.sendOtp)
+)
+
+// POST /auth/verify-otp
+router.post(
+  '/verify-otp',
+  validateRequest({ body: verifyOtpSchema }),
+  asyncHandler(AuthController.verifyOtp)
 )
 
 // POST /auth/refresh
