@@ -1,23 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
-import { RegisterUser }       from '../../application/use-cases/RegisterUser'
-import { LoginUser }          from '../../application/use-cases/LoginUser'
-import { RefreshAccessToken } from '../../application/use-cases/RefreshAccessToken'
-import { LogoutUser }         from '../../application/use-cases/LogoutUser'
-import { Otp }               from '../../application/use-cases/Otp'
 import { HttpStatus }         from '../../domain/enums/HttpStatus'
-import authRepo  from '../../infrastructure/repositories/PrismaAuthRepository'
-import otpRepo   from '../../infrastructure/repositories/PrismaOtpRepository'
-import otpDeliveryService from '../../infrastructure/services/OtpDeliveryService'
-import userServiceClient    from '../../infrastructure/services/UserServiceClient'
-import workerServiceClient   from '../../infrastructure/services/WorkerServiceClient'
-
-// Compose dependencies once — repository + external clients injected into use cases
-
-const registerUser       = new RegisterUser(authRepo, userServiceClient, workerServiceClient, otpRepo)
-const loginUser          = new LoginUser(authRepo)
-const refreshAccessToken = new RefreshAccessToken(authRepo)
-const logoutUser         = new LogoutUser(authRepo)
-const otp = new Otp(authRepo, otpRepo, otpDeliveryService)
+import { registerUser,loginUser,refreshAccessToken,logoutUser,otp } from '../../config/dependencies'
 
 export class AuthController {
   // POST /auth/register
