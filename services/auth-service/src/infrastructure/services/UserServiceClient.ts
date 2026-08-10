@@ -39,3 +39,7 @@ export class UserServiceClient implements IUserServiceClient {
     }
   }
 }
+
+const userServiceClient   = new UserServiceClient()
+
+export default userServiceClient;

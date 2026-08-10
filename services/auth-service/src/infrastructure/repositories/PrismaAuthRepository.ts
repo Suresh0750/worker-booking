@@ -5,60 +5,71 @@ import {
   SaveRefreshTokenInput,
 } from '../../domain/interfaces/IAuthRepository'
 import { UserEntity, RefreshTokenEntity } from '../../domain/entities/User'
+import {
+  hashToken,
+  toPrismaRole,
+  toRefreshTokenEntity,
+  toUserEntity,
+} from './PrismaUserMapper'
 
 export class PrismaAuthRepository implements IAuthRepository {
 
   async findByEmail(email: string): Promise<UserEntity | null> {
-    const tables = await prisma.$queryRaw`
-  SELECT table_name
-  FROM information_schema.tables
-  WHERE table_schema = 'public';
-`;
-
-console.log(tables);
-    const users = await prisma.user.findMany();
-    return prisma.user.findUnique({ where: { email } }) as Promise<UserEntity | null>
+    const user = await prisma.user.findUnique({ where: { email } })
+    return user ? toUserEntity(user) : null
   }
 
   async findById(id: string): Promise<UserEntity | null> {
-    return prisma.user.findUnique({ where: { id } }) as Promise<UserEntity | null>
+    const user = await prisma.user.findUnique({ where: { id } })
+    return user ? toUserEntity(user) : null
   }
 
   async create(data: CreateUserInput): Promise<UserEntity> {
-    return prisma.user.create({
+    const user = await prisma.user.create({
       data: {
-        email:        data.email,
-        passwordHash: data.passwordHash,
-        role:         data.role as any,
+        email:    data.email,
+        password: data.passwordHash,
+        role:     toPrismaRole(data.role),
+        fullName: data.fullName,
+        phone:    data.phone,
       },
-    }) as Promise<UserEntity>
+    })
+    return toUserEntity(user)
   }
 
   async deactivate(id: string): Promise<void> {
-    await prisma.user.update({ where: { id }, data: { isActive: false } })
+    await prisma.user.update({ where: { id }, data: { isBlocked: true } })
   }
 
   async saveRefreshToken(data: SaveRefreshTokenInput): Promise<RefreshTokenEntity> {
-    return prisma.refreshToken.create({
+    const record = await prisma.refreshToken.create({
       data: {
-        token:     data.token,
+        tokenHash: hashToken(data.token),
         userId:    data.userId,
         expiresAt: data.expiresAt,
       },
-    }) as Promise<RefreshTokenEntity>
+    })
+    return toRefreshTokenEntity(record, data.token)
   }
 
   async findRefreshToken(
     token: string
   ): Promise<(RefreshTokenEntity & { user: UserEntity }) | null> {
-    return prisma.refreshToken.findUnique({
-      where:   { token },
+    const record = await prisma.refreshToken.findUnique({
+      where:   { tokenHash: hashToken(token) },
       include: { user: true },
-    }) as any
+    })
+
+    if (!record || record.revokedAt) return null
+
+    return {
+      ...toRefreshTokenEntity(record, token),
+      user: toUserEntity(record.user),
+    }
   }
 
   async deleteRefreshToken(token: string): Promise<void> {
-    await prisma.refreshToken.delete({ where: { token } }).catch(() => {
+    await prisma.refreshToken.delete({ where: { tokenHash: hashToken(token) } }).catch(() => {
       // Silently ignore — token may already be deleted
     })
   }
@@ -67,3 +78,7 @@ console.log(tables);
     await prisma.refreshToken.deleteMany({ where: { userId } })
   }
 }
+
+const authRepo  = new PrismaAuthRepository()
+
+export default authRepo;

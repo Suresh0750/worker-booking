@@ -4,6 +4,7 @@ import { IAuthRepository } from '../../domain/interfaces/IAuthRepository'
 import { IUserServiceClient } from '../../domain/interfaces/IUserServiceClient'
 import { IWorkerServiceClient } from '../../domain/interfaces/IWorkerServiceClient'
 import { RegisterRequestDto, RegisterResponseDto } from '../dtos/AuthDto'
+import { IUserRole } from '../../domain/entities/User'
 
 export class RegisterUser {
   constructor(
@@ -24,37 +25,35 @@ export class RegisterUser {
     // 2. Hash password — cost 12 is secure, not too slow
     const passwordHash = await bcrypt.hash(dto.password, 12)
 
-    const role = (dto.role ?? 'USER').toUpperCase()
+    const role = (dto.role ?? IUserRole.CUSTOMER).toUpperCase()
 
     // 3. Save credentials to auth_db — ONLY what Auth owns
     const user = await this.authRepo.create({
-      email: dto.email,
+      email:        dto.email,
       passwordHash,
       role,
+      fullName:     dto.fullName,
+      phone:        dto.phone,
     })
 
-    // 4. Notify User Service to create the profile record
-    // Non-blocking — if User Service is down, auth still succeeds
-    // When Kafka is added, this becomes: producer.publish('user.registered', payload)
-    await this.userServiceClient.createProfile({
-      userId: user.id,
-      email:  user.email,
-      role:   user.role,
-    })
+    // // 4. Notify User Service to create the profile record
+    // // Non-blocking — if User Service is down, auth still succeeds
+    // // When Kafka is added, this becomes: producer.publish('user.registered', payload)
+    // await this.userServiceClient.createProfile({
+    //   userId: user.id,
+    //   email:  user.email,
+    //   role:   user.role,
+    // })
 
-    // 5. Worker Service — persist workers row (same id as auth user) when role is WORKER
-    if (role === 'WORKER') {
-      await this.workerServiceClient.createWorkerProfile({
-        userId:           user.id,
-        email:            user.email,
-        name:             dto.name,
-        phone:            dto.phone,
-        avatar:           dto.avatar,
-        bio:              dto.bio,
-        experienceYears:  dto.experienceYears,
-        availability:     dto.availability,
-      })
-    }
+    // // 5. Worker Service — persist workers row (same id as auth user) when role is WORKER
+    // if (role === 'WORKER') {
+    //   await this.workerServiceClient.createWorkerProfile({
+    //     userId:           user.id,
+    //     email:            user.email,
+    //     name:             dto.fullName,
+    //     phone:            dto.phone,
+    //   })
+    // }
 
     return {
       user: { id: user.id, email: user.email, role: user.role },

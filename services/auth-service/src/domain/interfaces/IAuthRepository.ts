@@ -4,6 +4,8 @@ export interface CreateUserInput {
   email:        string
   passwordHash: string
   role:         string
+  fullName:     string
+  phone:        string
 }
 
 export interface SaveRefreshTokenInput {

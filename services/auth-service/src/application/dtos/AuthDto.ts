@@ -1,31 +1,19 @@
+import { z } from 'zod'
 import { Role } from '@domain/entities/User'
+import {
+  registerSchema,
+  loginSchema,
+  refreshTokenSchema,
+  logoutSchema,
+  idParamsSchema,
+} from '../schemas/AuthSchemas'
 
-// ── Request DTOs ──────────────────────────────────────────
-export interface RegisterRequestDto {
-  email:    string
-  password: string
-  role?:    'USER' | 'WORKER'
-  /** Optional worker profile fields — used when role is WORKER */
-  name?:            string
-  phone?:           string
-  avatar?:          string
-  bio?:             string
-  experienceYears?: number
-  availability?:    'AVAILABLE' | 'BUSY' | 'UNAVAILABLE'
-}
-
-export interface LoginRequestDto {
-  email:    string
-  password: string
-}
-
-export interface RefreshTokenRequestDto {
-  refreshToken: string
-}
-
-export interface LogoutRequestDto {
-  refreshToken: string
-}
+// ── Request types — derived from Zod schemas (single source of truth) ──
+export type RegisterRequestDto     = z.infer<typeof registerSchema>
+export type LoginRequestDto        = z.infer<typeof loginSchema>
+export type RefreshTokenRequestDto = z.infer<typeof refreshTokenSchema>
+export type LogoutRequestDto       = z.infer<typeof logoutSchema>
+export type IdParamsDto            = z.infer<typeof idParamsSchema>
 
 // ── Response DTOs ─────────────────────────────────────────
 export interface AuthUserDto {

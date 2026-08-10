@@ -1,4 +1,4 @@
-export type Role = 'USER' | 'WORKER' | 'ADMIN'
+export type Role = 'CUSTOMER' | 'WORKER' | 'ADMIN'
 
 export interface UserEntity {
   id:           string
@@ -16,4 +16,10 @@ export interface RefreshTokenEntity {
   userId:    string
   expiresAt: Date
   createdAt: Date
+}
+
+export enum IUserRole {
+  CUSTOMER = 'CUSTOMER',
+  WORKER = 'WORKER',
+  ADMIN = 'ADMIN',
 }

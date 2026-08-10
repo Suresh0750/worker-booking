@@ -1,58 +1,64 @@
-import { Request, Response, NextFunction } from 'express'
-import { body, validationResult } from 'express-validator'
+import { NextFunction, Request, Response } from 'express'
+import { ZodTypeAny } from 'zod'
 import { HttpStatus } from '../../domain/enums/HttpStatus'
 
-// Reusable validation chains
-export const registerValidation = [
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Valid email is required'),
-  body('password')
-    .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must have uppercase, lowercase and a number'),
-  body('role')
-    .optional()
-    .isIn(['USER', 'WORKER'])
-    .withMessage('Role must be USER or WORKER'),
-  body('name').optional().isLength({ min: 2, max: 100 }).withMessage('Name must be 2-100 characters'),
-  body('phone').optional().isMobilePhone('any').withMessage('Valid phone number required'),
-  body('avatar').optional().isURL().withMessage('Avatar must be a valid URL'),
-  body('bio').optional().isLength({ max: 500 }).withMessage('Bio max 500 characters'),
-  body('experienceYears')
-    .optional()
-    .isInt({ min: 0, max: 50 })
-    .withMessage('Experience must be 0-50 years'),
-  body('availability')
-    .optional()
-    .isIn(['AVAILABLE', 'BUSY', 'UNAVAILABLE'])
-    .withMessage('Invalid availability'),
-]
+type RequestSource = 'body' | 'query' | 'params'
 
-export const loginValidation = [
-  body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-  body('password').notEmpty().withMessage('Password is required'),
-]
+export interface ValidationSchemas {
+  body?:   ZodTypeAny
+  query?:  ZodTypeAny
+  params?: ZodTypeAny
+}
 
-export const refreshValidation = [
-  body('refreshToken').notEmpty().withMessage('Refresh token is required'),
-]
+export interface ValidationErrorResponse {
+  success: false
+  status:  HttpStatus
+  errors:  Record<string, string>
+}
 
-// Middleware that checks the result of the chains above
-export const validateRequest = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
-  const errors = validationResult(req)
-  if (!errors.isEmpty()) {
-    res.status(HttpStatus.BAD_REQUEST).json({
-      success: false,
-      errors:  errors.array().map((e) => ({ field: e.type, message: e.msg })),
-    })
-    return
+/**
+ * Express middleware factory that validates `body`, `query` and/or `params`
+ * against the given Zod schemas. On failure responds with:
+ *
+ *   { success: false, status: 400, errors: { "<field>": "<message>" } }
+ *
+ * On success the parsed (and coerced) values are written back onto
+ * `req.body` / `req.query` / `req.params`.
+ */
+export const validateRequest = (schemas: ValidationSchemas) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const errors: Record<string, string> = {}
+
+    const validateSource = (source: RequestSource): void => {
+      const schema = schemas[source]
+      if (!schema) return
+
+      const result = schema.safeParse(req[source])
+      if (result.success) {
+        ;(req as any)[source] = result.data
+        return
+      }
+
+      for (const issue of result.error.issues) {
+        const field = issue.path.join('.') || source
+        if (!errors[field]) errors[field] = issue.message
+      }
+    }
+
+    validateSource('body')
+    validateSource('query')
+    validateSource('params')
+
+    if (Object.keys(errors).length > 0) {
+      const response: ValidationErrorResponse = {
+        success: false,
+        status:  HttpStatus.BAD_REQUEST,
+        errors,
+      }
+      res.status(HttpStatus.BAD_REQUEST).json(response)
+      return
+    }
+
+    next()
   }
-  next()
 }

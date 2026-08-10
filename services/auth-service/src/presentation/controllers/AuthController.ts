@@ -4,14 +4,11 @@ import { LoginUser }          from '../../application/use-cases/LoginUser'
 import { RefreshAccessToken } from '../../application/use-cases/RefreshAccessToken'
 import { LogoutUser }         from '../../application/use-cases/LogoutUser'
 import { HttpStatus }         from '../../domain/enums/HttpStatus'
-import { PrismaAuthRepository }  from '../../infrastructure/repositories/PrismaAuthRepository'
-import { UserServiceClient }     from '../../infrastructure/services/UserServiceClient'
-import { WorkerServiceClient }   from '../../infrastructure/services/WorkerServiceClient'
+import authRepo  from '../../infrastructure/repositories/PrismaAuthRepository'
+import userServiceClient    from '../../infrastructure/services/UserServiceClient'
+import workerServiceClient   from '../../infrastructure/services/WorkerServiceClient'
 
 // Compose dependencies once — repository + external clients injected into use cases
-const authRepo            = new PrismaAuthRepository()
-const userServiceClient   = new UserServiceClient()
-const workerServiceClient = new WorkerServiceClient()
 
 const registerUser       = new RegisterUser(authRepo, userServiceClient, workerServiceClient)
 const loginUser          = new LoginUser(authRepo)
@@ -75,11 +72,6 @@ export class AuthController {
     try {
       const jwt = await import('jsonwebtoken')
       const { token } = req.body
-
-      if (!token) {
-        res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: 'Token is required' })
-        return
-      }
 
       const payload = jwt.default.verify(token, process.env.JWT_SECRET as string)
       res.status(HttpStatus.OK).json({ success: true, data: payload })

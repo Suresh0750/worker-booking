@@ -36,3 +36,6 @@ export class WorkerServiceClient implements IWorkerServiceClient {
     }
   }
 }
+const workerServiceClient = new WorkerServiceClient()
+
+export default workerServiceClient;
