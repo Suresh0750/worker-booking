@@ -27,9 +27,12 @@ export const tokenStore = {
     if (typeof window === 'undefined') return null
     return localStorage.getItem('access_token')
   },
-  /** Sync helper — stores the access token in localStorage. */
+  /** Sync helper — stores the access token in localStorage AND a JS-readable cookie for middleware */
   setAccess: (access: string) => {
     localStorage.setItem('access_token', access)
+    // Write a non-httpOnly cookie so Next.js middleware can check auth status on the edge.
+    // It does NOT replace the httpOnly refresh token — it's just a presence signal.
+    document.cookie = `access_token=${access}; path=/; SameSite=Strict; max-age=${15 * 60}`
   },
   /**
    * Stores the access token in localStorage.
@@ -38,10 +41,18 @@ export const tokenStore = {
    */
   set: (access: string) => {
     localStorage.setItem('access_token', access)
+    document.cookie = `access_token=${access}; path=/; SameSite=Strict; max-age=${15 * 60}`
+  },
+  /** Write a role cookie so middleware can redirect to the right dashboard */
+  setRole: (role: string) => {
+    document.cookie = `user_role=${role}; path=/; SameSite=Strict; max-age=${30 * 24 * 60 * 60}`
   },
   clear: async () => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('user')
+    // Clear the middleware-readable cookies too
+    document.cookie = 'access_token=; path=/; max-age=0'
+    document.cookie = 'user_role=; path=/; max-age=0'
     await fetch('/api/auth/clear-tokens', { method: 'POST' })
   },
   getUser: (): AuthUser | null => {

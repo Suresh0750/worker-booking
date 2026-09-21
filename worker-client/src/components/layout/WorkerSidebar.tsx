@@ -81,10 +81,10 @@ export function WorkerSidebar() {
         <div className="px-4 py-4 border-b border-slate-100">
           <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-brand-50">
             <div className="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white text-sm font-semibold shrink-0">
-              {getInitials(user.email)}
+              {getInitials(user.fullName ?? user.email)}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900 truncate">{user.email.split('@')[0]}</p>
+              <p className="text-sm font-semibold text-slate-900 truncate">{user.fullName ?? user.email.split('@')[0]}</p>
               <p className="text-xs text-brand-600 font-medium">Worker account</p>
             </div>
           </div>

@@ -46,12 +46,33 @@ function LoginForm({ onSwitchTab }: { onSwitchTab: () => void }) {
     try {
       const res = await api.auth.login(data)
       if (!res.success) throw new Error(res.message)
+
+      // 1. Store access token
       tokenStore.setAccess(res.data.accessToken)
-      tokenStore.setUser({...res.data,...res.data.user})
-      setUser({...res.data,...res.data.user})
+
+      // 2. Persist refresh token in httpOnly cookie via Next.js proxy
+      await fetch('/api/auth/set-tokens', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: (res.data as any).refreshToken }),
+      })
+
+      // 3. Build the AuthUser object from the full login response
+      const loginUser = res.data.user as any
+      const authUser = {
+        ...loginUser,
+        accessToken: res.data.accessToken,
+      }
+
+      // 4. Write the role cookie so middleware can read it for redirects
+      tokenStore.setRole(loginUser.role)
+
+      // 5. Store in context (splits out addresses automatically)
+      setUser(authUser)
+
       toast.success('Welcome back!')
       setLoggedInUser({ email: data.email })
-      router.push(res.data.user.role === 'WORKER' ? '/worker/dashboard' : '/client/search')
+      router.push(loginUser.role === 'WORKER' ? '/worker/dashboard' : '/client/search')
     } catch (err: any) {
       toast.error(err?.response?.data?.message ?? err.message ?? 'Login failed')
     }

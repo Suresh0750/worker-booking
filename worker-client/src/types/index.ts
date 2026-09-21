@@ -2,17 +2,40 @@
 // Core domain types
 // ─────────────────────────────────────────────
 
-export type Role = 'USER' | 'WORKER' | 'ADMIN'
+export type Role = 'USER' | 'WORKER' | 'ADMIN' | 'CUSTOMER'
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'
 export type SlotType = 'SLOT_BASED' | 'REQUEST_BASED' | 'HYBRID'
 export type RateType = 'HOURLY' | 'DAILY'
 
+/**
+ * Stored in localStorage + held in AuthContext.
+ * Populated from the login response — contains everything the UI needs
+ * without a follow-up profile fetch.
+ */
 export interface AuthUser {
-  id: string
-  email: string
-  role: Role
+  // identity
+  id:          string
+  email:       string
+  role:        Role
   accessToken: string
-  refreshToken?: string
+
+  // user profile (available for all roles)
+  fullName:       string
+  phone:          string
+  secondaryPhone: string | null
+  gender:         string | null
+  dob:            string | null   // ISO date string
+  profileImage:   string | null
+
+  // worker-specific (only set when role === 'WORKER')
+  workerId?:        string
+  bio?:             string | null
+  experienceYears?: number
+  availability?:    Availability
+  isVerified?:      boolean
+
+  // addresses eager-loaded for workers
+  addresses?: WorkerAddress[]
 }
 
 export interface Location {

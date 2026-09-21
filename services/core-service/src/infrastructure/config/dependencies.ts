@@ -25,7 +25,7 @@ import { LogoutUser }         from '@application/use-cases/auth/LogoutUser'
 import { OtpUseCase }         from '@application/use-cases/auth/OtpUseCase'
 
 export const registerUser       = new RegisterUser(authRepo, otpRepo, workerRepo)
-export const loginUser          = new LoginUser(authRepo)
+export const loginUser          = new LoginUser(authRepo, userRepo, workerRepo)
 export const refreshAccessToken = new RefreshAccessToken(authRepo)
 export const logoutUser         = new LogoutUser(authRepo)
 export const otpUseCase         = new OtpUseCase(authRepo, otpRepo, otpDelivery)

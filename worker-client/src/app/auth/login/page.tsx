@@ -1,23 +1,39 @@
 'use client'
 
-import {  useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-
+import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Logo } from '@/components/layout/Logo'
 import { cn } from '@/lib/utils'
 import LoginForm from '@/components/users/LoginForm'
 import RegisterForm from '@/components/users/RegisterForm'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, Loader2 } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
 
-// ─── constants ────────────────────────────────────────────────────────────────
 type Tab = 'login' | 'register'
 
-
-// ─── Page shell ───────────────────────────────────────────────────────────────
 export default function AuthPage() {
+  const router       = useRouter()
+  const { user, isLoading } = useAuth()
   const searchParams = useSearchParams()
-  const initialTab = (searchParams.get('tab') as Tab) === 'register' ? 'register' : 'login'
+  const initialTab   = (searchParams.get('tab') as Tab) === 'register' ? 'register' : 'login'
   const [tab, setTab] = useState<Tab>(initialTab)
+
+  // Redirect authenticated users away from this page — they have no business here
+  useEffect(() => {
+    if (!isLoading && user) {
+      // replace so the login page is removed from history stack — back button won't return to it
+      router.replace(user.role === 'WORKER' ? '/worker/dashboard' : '/client/search')
+    }
+  }, [user, isLoading, router])
+
+  // Show a spinner while we check auth state, to avoid a flash of the login form
+  if (isLoading || user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen flex">
@@ -47,7 +63,6 @@ export default function AuthPage() {
             One trusted place for people who need a hand and skilled workers ready to help.
           </p>
 
-          {/* Illustration */}
           <div className="rounded-2xl overflow-hidden mt-4 max-w-sm">
             <img
               src="/login-illustration.svg"
