@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -11,7 +10,7 @@ import {
   User, Phone, CheckCircle2,
 } from 'lucide-react'
 import { loginSchema, LoginFormData, registerSchema, RegisterFormData } from '@/lib/validations'
-import { api, tokenStore } from '@/lib/api'
+import { api, tokenStore, toE164 } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { Input } from '@/components/ui/Input'
 import { Logo } from '@/components/layout/Logo'
@@ -32,6 +31,10 @@ function LoginForm({ onSwitchTab }: { onSwitchTab: () => void }) {
   const router = useRouter()
   const { setUser } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
+  // Post-login OTP verification state
+  const [loggedInUser, setLoggedInUser]   = useState<{ email: string } | null>(null)
+  const [verifyModal, setVerifyModal]     = useState<{ channel: OtpChannel; target: string } | null>(null)
+  const [otpSending, setOtpSending]       = useState(false)
 
   const {
     register,
@@ -46,10 +49,57 @@ function LoginForm({ onSwitchTab }: { onSwitchTab: () => void }) {
       tokenStore.set(res.data.accessToken, res.data.refreshToken)
       setUser(res.data)
       toast.success('Welcome back!')
-      router.push(res.data.role === 'WORKER' ? '/worker/dashboard' : '/client/search')
+      // Store email so the post-login verification banner can use it
+      setLoggedInUser({ email: data.email })
+      // Don't redirect yet — let the user optionally verify their contact
+      // They can skip by clicking "Continue" or the OTP modal will auto-close
     } catch (err: any) {
       toast.error(err?.response?.data?.message ?? err.message ?? 'Login failed')
     }
+  }
+
+  const redirectAfterLogin = useCallback(() => {
+    const user = tokenStore.getUser()
+    router.push(user?.role === 'WORKER' ? '/worker/dashboard' : '/client/search')
+  }, [router])
+
+  // Triggered when user clicks "Verify email" or "Verify phone" after login
+  const handleSendLoginOtp = async (channel: OtpChannel) => {
+    if (!loggedInUser || otpSending) return
+    setOtpSending(true)
+    try {
+      const body = channel === 'email' ? { email: loggedInUser.email } : undefined
+      // phone not stored in LoginFormData — for email we use the logged-in email
+      if (!body) return
+      const res = await api.auth.sendLoginOtp(body)
+      setVerifyModal({ channel, target: loggedInUser.email })
+      if (res.data?.debugCode) toast.success(`OTP sent! Dev code: ${res.data.debugCode}`)
+      else toast.success('OTP sent to your email')
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? err?.message ?? 'Failed to send OTP')
+    } finally {
+      setOtpSending(false)
+    }
+  }
+
+  const handleVerifyLoginOtp = async (otp: string) => {
+    if (!verifyModal) return
+    const body = verifyModal.channel === 'email'
+      ? { email: verifyModal.target, otp }
+      : { phone: verifyModal.target, otp }
+    const res = await api.auth.verifyLoginOtp(body)
+    if (!res.success) throw new Error(res.message)
+    setVerifyModal(null)
+    setLoggedInUser(null)
+    toast.success('Contact verified ✓')
+    redirectAfterLogin()
+  }
+
+  const handleResendLoginOtp = async () => {
+    if (!verifyModal) return
+    const body = verifyModal.channel === 'email' ? { email: verifyModal.target } : { phone: verifyModal.target }
+    const res = await api.auth.sendLoginOtp(body)
+    if (!res.success) throw new Error(res.message)
   }
 
   return (
@@ -123,6 +173,39 @@ function LoginForm({ onSwitchTab }: { onSwitchTab: () => void }) {
         Your information is safe and secure
       </div>
 
+      {/* Post-login verification prompt — shown right after a successful login */}
+      {loggedInUser && (
+        <div className="rounded-xl border border-brand-200 bg-brand-50 p-4 space-y-3">
+          <p className="text-sm font-medium text-brand-800">
+            One more step — verify your contact info
+          </p>
+          <p className="text-xs text-brand-600">
+            Verify your email address to keep your account secure.
+          </p>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              isLoading={otpSending}
+              onClick={() => handleSendLoginOtp('email')}
+              className="flex-1"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              Verify email
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={redirectAfterLogin}
+              className="flex-1"
+            >
+              Skip for now
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Switch to register */}
       <div className="pt-5 border-t border-slate-200 text-center">
         <p className="text-sm text-slate-500">
@@ -136,6 +219,15 @@ function LoginForm({ onSwitchTab }: { onSwitchTab: () => void }) {
           </button>
         </p>
       </div>
+      <OtpModal
+        open={verifyModal !== null}
+        channel={verifyModal?.channel ?? 'email'}
+        target={verifyModal?.target ?? ''}
+        title={verifyModal?.channel === 'email' ? 'Verify your email' : 'Verify your phone'}
+        onClose={() => setVerifyModal(null)}
+        onVerify={handleVerifyLoginOtp}
+        onResend={handleResendLoginOtp}
+      />
     </div>
   )
 }
@@ -184,9 +276,13 @@ function RegisterForm({ onSwitchTab }: { onSwitchTab: () => void }) {
       if (otpSending[channel]) return
       setOtpSending((s) => ({ ...s, [channel]: true }))
       try {
-        const body = channel === 'email' ? { email: emailValue } : { phone: phoneValue }
+        const body: { email?: string; phone?: string } = channel === 'email'
+          ? { email: emailValue }
+          : { phone: phoneValue }
         const res = await api.auth.sendOtp(body)
-        setOtpModal({ channel, target: channel === 'email' ? emailValue : phoneValue })
+        // Store normalised target so verifyOtp sends the same identifier the backend stored
+        const target = channel === 'email' ? emailValue : toE164(phoneValue)
+        setOtpModal({ channel, target })
         if (res.data?.debugCode) {
           toast.success(`OTP sent! Dev code: ${res.data.debugCode}`)
         } else {
@@ -203,7 +299,9 @@ function RegisterForm({ onSwitchTab }: { onSwitchTab: () => void }) {
 
   const handleResendOtp = useCallback(async () => {
     if (!otpModal) return
-    const body = otpModal.channel === 'email' ? { email: otpModal.target } : { phone: otpModal.target }
+    const body: { email?: string; phone?: string } = otpModal.channel === 'email'
+      ? { email: otpModal.target }
+      : { phone: otpModal.target }
     const res = await api.auth.sendOtp(body)
     if (!res.success) throw new Error(res.message)
   }, [otpModal])

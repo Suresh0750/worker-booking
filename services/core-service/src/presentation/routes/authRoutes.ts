@@ -14,10 +14,16 @@ import {
 const router = Router()
 
 // POST /auth/send-otp
-router.post('/send-otp',   validateRequest({ body: sendOtpSchema }),   AuthController.sendOtp)
+router.post('/send-otp',         validateRequest({ body: sendOtpSchema }),   AuthController.sendOtp)
 
 // POST /auth/verify-otp
-router.post('/verify-otp', validateRequest({ body: verifyOtpSchema }), AuthController.verifyOtp)
+router.post('/verify-otp',       validateRequest({ body: verifyOtpSchema }), AuthController.verifyOtp)
+
+// POST /auth/send-login-otp   — OTP for already-registered users (post-login verification)
+router.post('/send-login-otp',   validateRequest({ body: sendOtpSchema }),   AuthController.sendLoginOtp)
+
+// POST /auth/verify-login-otp — verify the LOGIN-purpose OTP
+router.post('/verify-login-otp', validateRequest({ body: verifyOtpSchema }), AuthController.verifyLoginOtp)
 
 // POST /auth/register
 router.post('/register',   validateRequest({ body: registerSchema }),   AuthController.register)

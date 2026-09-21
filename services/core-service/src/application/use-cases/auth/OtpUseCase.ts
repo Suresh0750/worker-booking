@@ -63,10 +63,55 @@ export class OtpUseCase {
     }
   }
 
-  async verify(dto: VerifyOtpInput): Promise<VerifyOtpResponseDto> {
+  /**
+   * Send an OTP to an already-registered email or phone (LOGIN purpose).
+   * Used for post-login contact verification / 2-step confirmation.
+   * Unlike `send()`, this does NOT block when the identifier is already registered.
+   */
+  async sendForRegistered(dto: SendOtpInput): Promise<SendOtpResponseDto> {
     const isEmail    = Boolean(dto.email)
     const identifier = (isEmail ? dto.email : dto.phone) as string
-    const purpose: OtpPurpose = isEmail ? 'EMAIL_VERIFICATION' : 'PHONE_VERIFICATION'
+    const channel    = isEmail ? 'EMAIL' : 'SMS'
+
+    // Require the identifier to exist
+    const exists = isEmail
+      ? await this.authRepo.findByEmail(identifier)
+      : await this.authRepo.findByPhone(identifier)
+
+    if (!exists) {
+      this.fail(HttpStatus.NOT_FOUND, isEmail ? 'No account with this email' : 'No account with this phone number')
+    }
+
+    const code     = crypto.randomInt(0, 1_000_000).toString().padStart(OTP_LENGTH, '0')
+    const codeHash = crypto.createHash('sha256').update(code).digest('hex')
+
+    await this.otpRepo.save({
+      identifier,
+      channel:     channel as any,
+      purpose:     'LOGIN',
+      codeHash,
+      expiresAt:   new Date(Date.now() + OTP_TTL_SECONDS * 1000),
+      maxAttempts: OTP_MAX_ATTEMPTS,
+    })
+
+    try {
+      if (isEmail) await this.delivery.sendEmailOtp(identifier, code)
+      else         await this.delivery.sendSmsOtp(identifier, code)
+    } catch (err: any) {
+      logger.error(`Failed to deliver LOGIN OTP via ${channel} to ${identifier}: ${err.message}`)
+    }
+
+    return {
+      sent:      true,
+      expiresIn: OTP_TTL_SECONDS,
+      ...(process.env.NODE_ENV === 'development' ? { debugCode: code } : {}),
+    }
+  }
+
+  async verify(dto: VerifyOtpInput, purposeOverride?: OtpPurpose): Promise<VerifyOtpResponseDto> {
+    const isEmail    = Boolean(dto.email)
+    const identifier = (isEmail ? dto.email : dto.phone) as string
+    const purpose: OtpPurpose = purposeOverride ?? (isEmail ? 'EMAIL_VERIFICATION' : 'PHONE_VERIFICATION')
 
     const record = await this.otpRepo.findLatestByIdentifierAndPurpose(identifier, purpose)
 

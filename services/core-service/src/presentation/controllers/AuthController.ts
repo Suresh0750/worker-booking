@@ -59,7 +59,23 @@ export class AuthController {
     } catch (err) { next(err) }
   }
 
-  // POST /auth/logout-all  — revokes every session for the caller
+  // POST /auth/send-login-otp  — sends OTP to an already-registered email/phone
+  static async sendLoginOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await otpUseCase.sendForRegistered(req.body)
+      res.status(HttpStatus.OK).json({ success: true, data: result })
+    } catch (err) { next(err) }
+  }
+
+  // POST /auth/verify-login-otp  — verifies a LOGIN-purpose OTP
+  static async verifyLoginOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await otpUseCase.verify(req.body, 'LOGIN')
+      res.status(HttpStatus.OK).json({ success: true, data: result })
+    } catch (err) { next(err) }
+  }
+
+
   static async logoutAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = (req as any).userId // injected by API Gateway → extractUser

@@ -2,6 +2,22 @@ import axios, { AxiosInstance, AxiosError } from 'axios'
 import { ApiResponse, WorkerProfile, Booking, TimeSlot, DashboardStats, JobRequest, AuthUser } from '@/types'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+
+// ─────────────────────────────────────────────
+// OTP helpers
+// ─────────────────────────────────────────────
+
+/** Normalise a 10-digit Indian mobile number to E.164 (+91XXXXXXXXXX). */
+export function toE164(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length === 10) return `+91${digits}`
+  if (digits.startsWith('91') && digits.length === 12) return `+${digits}`
+  if (digits.startsWith('+')) return phone.trim()
+  return `+${digits}`
+}
+
+export interface SendOtpBody   { email?: string; phone?: string }
+export interface VerifyOtpBody { email?: string; phone?: string; otp: string }
 // ─────────────────────────────────────────────
 // Token helpers
 // ─────────────────────────────────────────────
@@ -86,10 +102,32 @@ export const api = {
       http.post<ApiResponse<{ user: AuthUser }>>('/auth/register', body).then((r) => r.data),
     login: (body: unknown) =>
       http.post<ApiResponse<AuthUser>>('/auth/login', body).then((r) => r.data),
-    sendOtp: (body: unknown) =>
-      http.post<ApiResponse<{ sent: boolean; expiresIn?: number; debugCode?: string }>>('/auth/send-otp', body).then((r) => r.data),
-    verifyOtp: (body: unknown) =>
-      http.post<ApiResponse<{ verified: boolean }>>('/auth/verify-otp', body).then((r) => r.data),
+    sendOtp: (body: SendOtpBody) => {
+      const payload: SendOtpBody = body.phone
+        ? { phone: toE164(body.phone) }
+        : { email: body.email }
+      return http.post<ApiResponse<{ sent: boolean; expiresIn?: number; debugCode?: string }>>('/auth/send-otp', payload).then((r) => r.data)
+    },
+    verifyOtp: (body: VerifyOtpBody) => {
+      const payload: VerifyOtpBody = body.phone
+        ? { phone: toE164(body.phone), otp: body.otp }
+        : { email: body.email, otp: body.otp }
+      return http.post<ApiResponse<{ verified: boolean }>>('/auth/verify-otp', payload).then((r) => r.data)
+    },
+    /** Send an OTP to an already-registered email/phone (post-login verification) */
+    sendLoginOtp: (body: SendOtpBody) => {
+      const payload: SendOtpBody = body.phone
+        ? { phone: toE164(body.phone) }
+        : { email: body.email }
+      return http.post<ApiResponse<{ sent: boolean; expiresIn?: number; debugCode?: string }>>('/auth/send-login-otp', payload).then((r) => r.data)
+    },
+    /** Verify the LOGIN-purpose OTP returned by sendLoginOtp */
+    verifyLoginOtp: (body: VerifyOtpBody) => {
+      const payload: VerifyOtpBody = body.phone
+        ? { phone: toE164(body.phone), otp: body.otp }
+        : { email: body.email, otp: body.otp }
+      return http.post<ApiResponse<{ verified: boolean }>>('/auth/verify-login-otp', payload).then((r) => r.data)
+    },
     logout: () => {
       const refreshToken = tokenStore.getRefresh()
       tokenStore.clear()
