@@ -125,3 +125,121 @@ export interface ICategory {
   slug: string
   icon?: string
 }
+
+// ─────────────────────────────────────────────
+// Worker portal extended types
+// ─────────────────────────────────────────────
+
+export type Availability = 'AVAILABLE' | 'BUSY' | 'UNAVAILABLE'
+export type DocumentType = 'AADHAAR' | 'PAN_CARD' | 'DRIVING_LICENSE' | 'PASSPORT' | 'WORK_PERMIT' | 'CERTIFICATE' | 'OTHER'
+export type DocumentStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+export type MediaType = 'IMAGE' | 'VIDEO'
+
+/** Full merged profile — User fields + Worker fields */
+export interface WorkerFullProfile {
+  // User fields
+  id: string          // User.id
+  fullName: string
+  email: string
+  phone: string
+  secondaryPhone?: string
+  gender?: string
+  dob?: string        // ISO date string
+  profileImage?: string
+  // Worker fields
+  workerId: string
+  bio?: string
+  experienceYears: number
+  avgRating: number
+  totalReviews: number
+  availability: Availability
+  isVerified: boolean
+  isActive: boolean
+}
+
+export interface WorkerAddress {
+  id: string
+  userId: string
+  line1: string
+  line2?: string
+  city: string
+  state: string
+  pincode: string
+  lat?: number
+  lng?: number
+  label?: string
+  isPrimary: boolean
+  createdAt: string
+}
+
+export interface ServiceItem {
+  id: string
+  categoryId: string
+  name: string
+  slug: string
+  description?: string
+}
+
+export interface WorkerService {
+  id: string
+  workerId: string
+  serviceId: string
+  price?: number
+  isActive: boolean
+  service: ServiceItem
+  createdAt: string
+}
+
+export interface CategoryItem {
+  id: string
+  name: string
+  slug: string
+  icon?: string
+  description?: string
+}
+
+export interface WorkerCategory {
+  workerId: string
+  categoryId: string
+  category: CategoryItem
+}
+
+export interface PortfolioItem {
+  id: string
+  workerId: string
+  mediaUrl: string
+  mediaType: MediaType
+  caption?: string
+  uploadedAt: string
+}
+
+export interface WorkerDocument {
+  id: string
+  workerId: string
+  documentType: DocumentType
+  documentUrl: string
+  status: DocumentStatus
+  rejectionReason?: string
+  verifiedAt?: string
+  createdAt: string
+}
+
+export interface Message {
+  id: string
+  conversationId: string
+  senderId: string
+  senderRole: 'WORKER' | 'CUSTOMER'
+  content: string
+  createdAt: string
+  readAt?: string
+}
+
+export interface Conversation {
+  id: string
+  clientId: string
+  clientName: string
+  clientAvatar?: string
+  lastMessage?: string
+  lastMessageAt?: string
+  unreadCount: number
+}

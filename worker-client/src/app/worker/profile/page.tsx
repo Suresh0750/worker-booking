@@ -1,61 +1,90 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import toast from 'react-hot-toast'
-import { Loader2, Save, User, IndianRupee, Tag } from 'lucide-react'
-import { profileEditSchema, ProfileEditFormData } from '@/lib/validations'
+import {
+  Loader2, Save, User, Phone, Calendar, Camera,
+  BadgeCheck, Briefcase,
+} from 'lucide-react'
 import { api } from '@/lib/api'
-import { Navbar } from '@/components/layout/Navbar'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select, Textarea } from '@/components/ui/FormFields'
-import { LocationPicker } from '@/components/ui/LocationPicker'
-import { PROFESSIONS } from '@/lib/utils'
-import { Location, WorkerProfile } from '@/types'
+import { WorkerFullProfile } from '@/types'
+import { cn } from '@/lib/utils'
 
-export default function ProfileEditPage() {
-  const [profile, setProfile] = useState<WorkerProfile | null>(null)
-  const [location, setLocation] = useState<Location | null>(null)
+const schema = z.object({
+  fullName: z.string().min(2, 'Name must be at least 2 characters'),
+  phone: z.string().min(10, 'Enter a valid phone number'),
+  secondaryPhone: z.string().optional(),
+  gender: z.enum(['MALE', 'FEMALE', 'OTHER', '']).optional(),
+  dob: z.string().optional(),
+  bio: z.string().max(300, 'Bio must be under 300 characters').optional(),
+  experienceYears: z.coerce.number().min(0).max(60),
+})
+type FormData = z.infer<typeof schema>
+
+export default function MyProfilePage() {
+  const [profile, setProfile] = useState<WorkerFullProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const {
     register,
     handleSubmit,
     reset,
-    setValue,
-    watch,
     formState: { errors, isSubmitting, isDirty },
-  } = useForm<ProfileEditFormData>({
-    resolver: zodResolver(profileEditSchema),
-  })
-
-  const isAvailable = watch('isAvailable')
+  } = useForm<FormData>({ resolver: zodResolver(schema) })
 
   useEffect(() => {
-    api.worker.getProfile().then(res => {
-      const p = res.data
-      setProfile(p)
-      setLocation(p.location)
-      reset({
-        name: p.name,
-        bio: p.bio ?? '',
-        profession: p.profession,
-        rate: p.rate,
-        rateType: p.rateType,
-        skills: p.skills.join(', '),
-        isAvailable: p.isAvailable,
+    api.worker.getFullProfile()
+      .then(res => {
+        const p = res.data
+        setProfile(p)
+        setAvatarPreview(p.profileImage ?? null)
+        reset({
+          fullName: p.fullName,
+          phone: p.phone,
+          secondaryPhone: p.secondaryPhone ?? '',
+          gender: (p.gender as any) ?? '',
+          dob: p.dob ? p.dob.slice(0, 10) : '',
+          bio: p.bio ?? '',
+          experienceYears: p.experienceYears,
+        })
+        setIsLoading(false)
       })
-      setIsLoading(false)
-    })
+      .catch(() => setIsLoading(false))
   }, [reset])
 
-  const onSubmit = async (data: ProfileEditFormData) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setAvatarPreview(URL.createObjectURL(file))
+    setUploading(true)
     try {
-      const skills = data.skills.split(',').map(s => s.trim()).filter(Boolean)
-      await api.worker.updateProfile({ ...data, skills, location })
-      toast.success('Profile updated!')
+      const res = await api.worker.uploadProfileImage(file)
+      toast.success('Profile photo updated!')
+      setAvatarPreview(res.data.url)
+    } catch {
+      toast.error('Failed to upload photo')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const onSubmit = async (data: FormData) => {
+    try {
+      await api.worker.updateFullProfile({
+        ...data,
+        gender: data.gender || undefined,
+        dob: data.dob || undefined,
+      })
+      toast.success('Profile saved!')
     } catch (err: any) {
       toast.error(err?.response?.data?.message ?? 'Update failed')
     }
@@ -63,140 +92,150 @@ export default function ProfileEditPage() {
 
   if (isLoading) {
     return (
-      <>
-        <Navbar />
-        <div className="flex justify-center items-center min-h-[60vh]">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
-        </div>
-      </>
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+      </div>
     )
   }
 
   return (
-    <>
-      <Navbar />
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h1 className="font-display text-2xl font-semibold text-slate-900 mb-1">Edit Profile</h1>
-          <p className="text-sm text-slate-500">Keep your profile up-to-date to attract more clients</p>
-        </div>
+    <main className="max-w-2xl mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="font-display text-2xl font-semibold text-slate-900 mb-1">My Profile</h1>
+        <p className="text-sm text-slate-500">Edit your personal details and professional info</p>
+      </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
-          {/* Basic info */}
-          <div className="card p-6 space-y-4">
-            <h2 className="font-semibold text-slate-800 flex items-center gap-2 mb-1">
-              <User className="w-4 h-4 text-brand-600" /> Basic information
-            </h2>
-
-            <Input
-              label="Full name"
-              error={errors.name?.message}
-              leftIcon={<User className="w-4 h-4" />}
-              required
-              {...register('name')}
-            />
-
-            <Select
-              label="Profession"
-              options={PROFESSIONS.map(p => ({ value: p, label: p }))}
-              error={errors.profession?.message}
-              required
-              {...register('profession')}
-            />
-
-            <Input
-              label="Rate (₹)"
-              type="number"
-              error={errors.rate?.message}
-              leftIcon={<IndianRupee className="w-4 h-4" />}
-              required
-              {...register('rate')}
-            />
-
-            <Textarea
-              label="Bio"
-              placeholder="Tell clients about your experience and what makes you great..."
-              rows={4}
-              error={errors.bio?.message}
-              hint="Max 300 characters"
-              {...register('bio')}
-            />
-          </div>
-
-          {/* Skills */}
-          <div className="card p-6 space-y-4">
-            <h2 className="font-semibold text-slate-800 flex items-center gap-2 mb-1">
-              <Tag className="w-4 h-4 text-brand-600" /> Skills
-            </h2>
-            <Input
-              label="Skills (comma separated)"
-              placeholder="e.g. Furniture making, Wood polishing, Cabinet installation"
-              error={errors.skills?.message}
-              hint="Add your key skills so clients can find you"
-              {...register('skills')}
-            />
-            {/* Preview */}
-            {watch('skills') && (
-              <div className="flex flex-wrap gap-2">
-                {watch('skills').split(',').map(s => s.trim()).filter(Boolean).map(skill => (
-                  <span key={skill} className="px-3 py-1 bg-brand-50 text-brand-700 rounded-lg text-sm font-medium border border-brand-200">
-                    {skill}
-                  </span>
-                ))}
-              </div>
+      {/* Avatar */}
+      <div className="card p-6 mb-5 flex items-center gap-5">
+        <div className="relative shrink-0">
+          <div className="w-20 h-20 rounded-2xl bg-brand-100 overflow-hidden flex items-center justify-center">
+            {avatarPreview ? (
+              <img src={avatarPreview} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <User className="w-8 h-8 text-brand-400" />
             )}
           </div>
-
-          {/* Availability toggle */}
-          <div className="card p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-slate-800">Availability</p>
-                <p className="text-sm text-slate-500 mt-0.5">
-                  {isAvailable
-                    ? 'You are visible to clients and accepting bookings'
-                    : 'You are hidden from search and not accepting bookings'}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setValue('isAvailable', !isAvailable, { shouldDirty: true })}
-                className={`w-12 h-7 rounded-full transition-colors relative shrink-0 ${
-                  isAvailable ? 'bg-brand-600' : 'bg-slate-200'
-                }`}
-              >
-                <span className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
-                  isAvailable ? 'translate-x-6' : 'translate-x-1'
-                }`} />
-              </button>
-            </div>
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="absolute -bottom-1.5 -right-1.5 w-7 h-7 bg-brand-600 rounded-xl flex items-center justify-center text-white shadow-md hover:bg-brand-700 transition-colors"
+            aria-label="Change photo"
+          >
+            {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
+          </button>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+        </div>
+        <div>
+          <p className="font-semibold text-slate-900">{profile?.fullName}</p>
+          <p className="text-sm text-slate-500 mt-0.5">{profile?.email}</p>
+          <div className="flex items-center gap-1.5 mt-1.5">
+            {profile?.isVerified ? (
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-lg">
+                <BadgeCheck className="w-3.5 h-3.5" /> Verified
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg">
+                Pending verification
+              </span>
+            )}
           </div>
+        </div>
+      </div>
 
-          {/* Location */}
-          <div className="card p-6">
-            <h2 className="font-semibold text-slate-800 mb-3">Work area</h2>
-            <p className="text-sm text-slate-500 mb-4">
-              Clients search workers by location. Keep this accurate.
-            </p>
-            <LocationPicker
-              defaultLocation={profile?.location}
-              onSelect={setLocation}
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+        {/* Personal info */}
+        <div className="card p-6 space-y-4">
+          <h2 className="font-semibold text-slate-800 flex items-center gap-2">
+            <User className="w-4 h-4 text-brand-600" /> Personal information
+          </h2>
+
+          <Input
+            label="Full name"
+            error={errors.fullName?.message}
+            leftIcon={<User className="w-4 h-4" />}
+            required
+            {...register('fullName')}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Phone"
+              type="tel"
+              error={errors.phone?.message}
+              leftIcon={<Phone className="w-4 h-4" />}
+              required
+              {...register('phone')}
+            />
+            <Input
+              label="Secondary phone"
+              type="tel"
+              error={errors.secondaryPhone?.message}
+              leftIcon={<Phone className="w-4 h-4" />}
+              {...register('secondaryPhone')}
             />
           </div>
 
-          {/* Save */}
-          <Button
-            type="submit"
-            isLoading={isSubmitting}
-            disabled={!isDirty && location === profile?.location}
-            className="w-full"
-            size="lg"
-            leftIcon={<Save className="w-4 h-4" />}
-          >
-            Save changes
-          </Button>
-        </form>
-      </main>
-    </>
+          <div className="grid grid-cols-2 gap-4">
+            <Select
+              label="Gender"
+              options={[
+                { value: '', label: 'Prefer not to say' },
+                { value: 'MALE', label: 'Male' },
+                { value: 'FEMALE', label: 'Female' },
+                { value: 'OTHER', label: 'Other' },
+              ]}
+              error={errors.gender?.message}
+              {...register('gender')}
+            />
+            <Input
+              label="Date of birth"
+              type="date"
+              error={errors.dob?.message}
+              leftIcon={<Calendar className="w-4 h-4" />}
+              {...register('dob')}
+            />
+          </div>
+        </div>
+
+        {/* Professional info */}
+        <div className="card p-6 space-y-4">
+          <h2 className="font-semibold text-slate-800 flex items-center gap-2">
+            <Briefcase className="w-4 h-4 text-brand-600" /> Professional information
+          </h2>
+
+          <Input
+            label="Years of experience"
+            type="number"
+            min={0}
+            max={60}
+            error={errors.experienceYears?.message}
+            hint="How many years have you been doing this work?"
+            required
+            {...register('experienceYears')}
+          />
+
+          <Textarea
+            label="Bio"
+            placeholder="Tell clients about your experience, what makes you great, and the kind of work you love doing..."
+            rows={4}
+            error={errors.bio?.message}
+            hint="Max 300 characters — shown on your public profile"
+            {...register('bio')}
+          />
+        </div>
+
+        <Button
+          type="submit"
+          isLoading={isSubmitting}
+          disabled={!isDirty}
+          className="w-full"
+          size="lg"
+          leftIcon={<Save className="w-4 h-4" />}
+        >
+          Save changes
+        </Button>
+      </form>
+    </main>
   )
 }

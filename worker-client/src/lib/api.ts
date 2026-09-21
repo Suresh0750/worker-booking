@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosError } from 'axios'
-import { ApiResponse, WorkerProfile, Booking, TimeSlot, DashboardStats, JobRequest, AuthUser } from '@/types'
+import { ApiResponse, WorkerProfile, Booking, TimeSlot, DashboardStats, JobRequest, AuthUser, WorkerAddress, WorkerService, WorkerCategory, PortfolioItem, WorkerDocument, WorkerFullProfile, Message, Conversation } from '@/types'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 
@@ -191,5 +191,108 @@ export const api = {
     },
     deletePhoto: (url: string) =>
       http.delete('/worker/photos', { data: { url } }).then((r) => r.data),
+
+    // Full profile (User + Worker merged)
+    getFullProfile: () =>
+      http.get<ApiResponse<WorkerFullProfile>>('/worker/me').then((r) => r.data),
+    updateFullProfile: (body: unknown) =>
+      http.put<ApiResponse<WorkerFullProfile>>('/worker/me', body).then((r) => r.data),
+    uploadProfileImage: async (file: File) => {
+      const form = new FormData()
+      form.append('image', file)
+      return http.post<ApiResponse<{ url: string }>>('/worker/me/avatar', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }).then((r) => r.data)
+    },
+
+    // Addresses
+    getAddresses: () =>
+      http.get<ApiResponse<WorkerAddress[]>>('/worker/addresses').then((r) => r.data),
+    createAddress: (body: unknown) =>
+      http.post<ApiResponse<WorkerAddress>>('/worker/addresses', body).then((r) => r.data),
+    updateAddress: (id: string, body: unknown) =>
+      http.put<ApiResponse<WorkerAddress>>(`/worker/addresses/${id}`, body).then((r) => r.data),
+    deleteAddress: (id: string) =>
+      http.delete(`/worker/addresses/${id}`).then((r) => r.data),
+    setPrimaryAddress: (id: string) =>
+      http.post(`/worker/addresses/${id}/primary`).then((r) => r.data),
+
+    // Services
+    getServices: () =>
+      http.get<ApiResponse<WorkerService[]>>('/worker/services').then((r) => r.data),
+    addService: (body: { serviceId: string; price?: number }) =>
+      http.post<ApiResponse<WorkerService>>('/worker/services', body).then((r) => r.data),
+    updateService: (id: string, body: { price?: number; isActive: boolean }) =>
+      http.put<ApiResponse<WorkerService>>(`/worker/services/${id}`, body).then((r) => r.data),
+    removeService: (id: string) =>
+      http.delete(`/worker/services/${id}`).then((r) => r.data),
+
+    // Categories
+    getCategories: () =>
+      http.get<ApiResponse<WorkerCategory[]>>('/worker/categories').then((r) => r.data),
+    addCategory: (categoryId: string) =>
+      http.post<ApiResponse<WorkerCategory>>('/worker/categories', { categoryId }).then((r) => r.data),
+    removeCategory: (categoryId: string) =>
+      http.delete(`/worker/categories/${categoryId}`).then((r) => r.data),
+
+    // Portfolio (media)
+    getPortfolio: () =>
+      http.get<ApiResponse<PortfolioItem[]>>('/worker/portfolio').then((r) => r.data),
+    uploadPortfolioMedia: async (file: File, caption?: string) => {
+      const form = new FormData()
+      form.append('media', file)
+      if (caption) form.append('caption', caption)
+      return http.post<ApiResponse<PortfolioItem>>('/worker/portfolio', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }).then((r) => r.data)
+    },
+    updatePortfolioCaption: (id: string, caption: string) =>
+      http.put<ApiResponse<PortfolioItem>>(`/worker/portfolio/${id}`, { caption }).then((r) => r.data),
+    deletePortfolioItem: (id: string) =>
+      http.delete(`/worker/portfolio/${id}`).then((r) => r.data),
+
+    // Documents
+    getDocuments: () =>
+      http.get<ApiResponse<WorkerDocument[]>>('/worker/documents').then((r) => r.data),
+    uploadDocument: async (file: File, documentType: string) => {
+      const form = new FormData()
+      form.append('document', file)
+      form.append('documentType', documentType)
+      return http.post<ApiResponse<WorkerDocument>>('/worker/documents', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }).then((r) => r.data)
+    },
+    deleteDocument: (id: string) =>
+      http.delete(`/worker/documents/${id}`).then((r) => r.data),
+
+    // Availability
+    updateAvailability: (availability: 'AVAILABLE' | 'BUSY' | 'UNAVAILABLE') =>
+      http.put<ApiResponse<{ availability: string }>>('/worker/availability', { availability }).then((r) => r.data),
+
+    // Account / Security
+    changePassword: (body: { currentPassword: string; newPassword: string }) =>
+      http.put('/worker/password', body).then((r) => r.data),
+    getSessions: () =>
+      http.get<ApiResponse<{ id: string; ipAddress?: string; userAgent?: string; createdAt: string }[]>>('/worker/sessions').then((r) => r.data),
+    revokeSession: (id: string) =>
+      http.delete(`/worker/sessions/${id}`).then((r) => r.data),
+    revokeAllSessions: () =>
+      http.delete('/worker/sessions').then((r) => r.data),
+
+    // Messages
+    getConversations: () =>
+      http.get<ApiResponse<Conversation[]>>('/worker/conversations').then((r) => r.data),
+    getMessages: (conversationId: string) =>
+      http.get<ApiResponse<Message[]>>(`/worker/conversations/${conversationId}/messages`).then((r) => r.data),
+    sendMessage: (conversationId: string, content: string) =>
+      http.post<ApiResponse<Message>>(`/worker/conversations/${conversationId}/messages`, { content }).then((r) => r.data),
+  },
+
+  // Shared catalogue (used by worker services/categories pages)
+  catalogue: {
+    getCategories: () =>
+      http.get<ApiResponse<{ id: string; name: string; slug: string; icon?: string }[]>>('/categories').then((r) => r.data),
+    getServices: (categoryId?: string) =>
+      http.get<ApiResponse<{ id: string; categoryId: string; name: string; slug: string }[]>>('/services', { params: { categoryId } }).then((r) => r.data),
   },
 }

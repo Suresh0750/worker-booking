@@ -8,7 +8,6 @@ import {
 } from 'recharts'
 import { DashboardStats, Booking } from '@/types'
 import { api } from '@/lib/api'
-import { Navbar } from '@/components/layout/Navbar'
 import { formatCurrency, getInitials } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { THEME } from '@/constants/theme'
@@ -26,7 +25,7 @@ export default function WorkerDashboard() {
       setStats(s.data)
       setBookings(b.data ?? [])
       setIsLoading(false)
-    })
+    }).catch((err)=>console.error(err.message))
   }, [])
 
   const handleConfirm = async (id: string) => {
@@ -43,12 +42,9 @@ export default function WorkerDashboard() {
 
   if (isLoading) {
     return (
-      <>
-        <Navbar />
-        <div className="flex justify-center items-center min-h-[60vh]">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
-        </div>
-      </>
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+      </div>
     )
   }
 
@@ -63,7 +59,6 @@ export default function WorkerDashboard() {
 
   return (
     <>
-      <Navbar />
       <main className="max-w-5xl mx-auto px-4 py-8">
         <h1 className="font-display text-2xl font-semibold text-slate-900 mb-6">Dashboard</h1>
 

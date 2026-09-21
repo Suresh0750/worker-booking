@@ -8,7 +8,6 @@ import { Plus, Clock, Trash2, CheckCircle, XCircle, Loader2, Calendar } from 'lu
 import { slotSchema, SlotFormData } from '@/lib/validations'
 import { api } from '@/lib/api'
 import { TimeSlot, JobRequest, SlotType } from '@/types'
-import { Navbar } from '@/components/layout/Navbar'
 import { Button } from '@/components/ui/Button'
 import { formatDateTime, formatCurrency } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -57,21 +56,16 @@ export default function SlotsPage() {
 
   if (isLoading) {
     return (
-      <>
-        <Navbar />
-        <div className="flex justify-center items-center min-h-[60vh]">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
-        </div>
-      </>
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+      </div>
     )
   }
 
   // ── Request-based workers see job requests ──
   if (slotType === 'REQUEST_BASED') {
     return (
-      <>
-        <Navbar />
-        <main className="max-w-3xl mx-auto px-4 py-8">
+      <main className="max-w-3xl mx-auto px-4 py-8">
           <div className="mb-6">
             <h1 className="font-display text-2xl font-semibold text-slate-900 mb-1">Job Requests</h1>
             <p className="text-sm text-slate-500">
@@ -130,15 +124,12 @@ export default function SlotsPage() {
             </div>
           )}
         </main>
-      </>
     )
   }
 
   // ── Slot-based / Hybrid workers manage time slots ──
   return (
-    <>
-      <Navbar />
-      <main className="max-w-3xl mx-auto px-4 py-8">
+    <main className="max-w-3xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display text-2xl font-semibold text-slate-900 mb-1">Manage Slots</h1>
@@ -208,7 +199,6 @@ export default function SlotsPage() {
           </div>
         )}
       </main>
-    </>
   )
 }
 

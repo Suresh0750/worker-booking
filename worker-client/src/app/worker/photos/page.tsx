@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react'
 import { Upload, Trash2, ImageIcon, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { api } from '@/lib/api'
-import { Navbar } from '@/components/layout/Navbar'
 import { cn } from '@/lib/utils'
 
 export default function PhotosPage() {
@@ -64,9 +63,7 @@ export default function PhotosPage() {
   }
 
   return (
-    <>
-      <Navbar />
-      <main className="max-w-3xl mx-auto px-4 py-8">
+    <main className="max-w-3xl mx-auto px-4 py-8">
         <div className="mb-6">
           <h1 className="font-display text-2xl font-semibold text-slate-900 mb-1">Project Photos</h1>
           <p className="text-sm text-slate-500">
@@ -163,6 +160,5 @@ export default function PhotosPage() {
           )
         )}
       </main>
-    </>
   )
 }
