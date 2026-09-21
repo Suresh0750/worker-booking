@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { CheckCircle2, Mail, Phone, RotateCcw, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from './Button'
@@ -149,7 +150,7 @@ export function OtpModal({
     }
   }, [onResend, reset])
 
-  if (!open) return null
+  if (!open || typeof document === 'undefined') return null
 
   const Icon = channel === 'email' ? Mail : Phone
   const isVerifying = phase === 'verifying'
@@ -161,9 +162,9 @@ export function OtpModal({
     ? target.replace(/(.{2})(.*)(@.*)/, (_, a, _b, c) => `${a}***${c}`)
     : target.replace(/(\+?\d{2,3})(\d{3})(\d+)(\d{2})/, (_, cc, _m, _n, last) => `${cc}*****${last}`)
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true" aria-labelledby="otp-modal-title">
-      {/* Backdrop */}
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4" role="dialog" aria-modal="true" aria-labelledby="otp-modal-title">
+      {/* Full-page backdrop — rendered directly in body, unaffected by ancestor stacking contexts */}
       <div
         className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
         onClick={isSuccess ? undefined : onClose}
@@ -286,6 +287,7 @@ export function OtpModal({
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
