@@ -1,9 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios'
 import { ApiResponse, WorkerProfile, Booking, TimeSlot, DashboardStats, JobRequest, AuthUser } from '@/types'
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000'
-
-const AUTH_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3005'
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 // ─────────────────────────────────────────────
 // Token helpers
 // ─────────────────────────────────────────────
@@ -38,7 +36,7 @@ export const tokenStore = {
 // ─────────────────────────────────────────────
 
 const http: AxiosInstance = axios.create({
-  baseURL: AUTH_URL,
+  baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 10_000,
 })
