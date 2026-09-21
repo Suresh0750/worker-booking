@@ -27,18 +27,22 @@ export const tokenStore = {
     if (typeof window === 'undefined') return null
     return localStorage.getItem('access_token')
   },
-  getRefresh: () => {
-    if (typeof window === 'undefined') return null
-    return localStorage.getItem('refresh_token')
-  },
-  set: (access: string, refresh: string) => {
+  /** Sync helper — stores the access token in localStorage. */
+  setAccess: (access: string) => {
     localStorage.setItem('access_token', access)
-    localStorage.setItem('refresh_token', refresh)
   },
-  clear: () => {
+  /**
+   * Stores the access token in localStorage.
+   * The refresh token is set as an httpOnly cookie directly by the backend
+   * and is never accessible from client-side JavaScript.
+   */
+  set: (access: string) => {
+    localStorage.setItem('access_token', access)
+  },
+  clear: async () => {
     localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
     localStorage.removeItem('user')
+    await fetch('/api/auth/clear-tokens', { method: 'POST' })
   },
   getUser: (): AuthUser | null => {
     if (typeof window === 'undefined') return null
@@ -71,19 +75,15 @@ http.interceptors.response.use(
     const original = err.config as any
     if (err.response?.status === 401 && !original._retry) {
       original._retry = true
-      const refreshToken = tokenStore.getRefresh()
-      if (refreshToken) {
-        try {
-          const { data } = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken })
-          tokenStore.set(data.data.accessToken, data.data.refreshToken)
-          original.headers.Authorization = `Bearer ${data.data.accessToken}`
-          return http(original)
-        } catch {
-          tokenStore.clear()
-          if (typeof window !== 'undefined') window.location.href = '/auth/login'
-        }
-      } else {
-        tokenStore.clear()
+      try {
+        // Hit the Next.js proxy — it reads the httpOnly cookie server-side
+        const { data } = await axios.post('/api/auth/refresh')
+        const newAccessToken = data.data.accessToken
+        tokenStore.setAccess(newAccessToken)
+        original.headers.Authorization = `Bearer ${newAccessToken}`
+        return http(original)
+      } catch {
+        await tokenStore.clear()
         if (typeof window !== 'undefined') window.location.href = '/auth/login'
       }
     }
@@ -101,7 +101,7 @@ export const api = {
     register: (body: unknown) =>
       http.post<ApiResponse<{ user: AuthUser }>>('/auth/register', body).then((r) => r.data),
     login: (body: unknown) =>
-      http.post<ApiResponse<AuthUser>>('/auth/login', body).then((r) => r.data),
+      http.post<ApiResponse<{user : AuthUser,accessToken:string}>>('/auth/login', body).then((r) => r.data),
     sendOtp: (body: SendOtpBody) => {
       const payload: SendOtpBody = body.phone
         ? { phone: toE164(body.phone) }
@@ -128,13 +128,12 @@ export const api = {
         : { email: body.email, otp: body.otp }
       return http.post<ApiResponse<{ verified: boolean }>>('/auth/verify-login-otp', payload).then((r) => r.data)
     },
-    logout: () => {
-      const refreshToken = tokenStore.getRefresh()
-      tokenStore.clear()
-      return http.post('/auth/logout', { refreshToken }).then((r) => r.data)
+    logout: async () => {
+      await tokenStore.clear()  // clears access token + httpOnly cookie
+      return http.post('/auth/logout').then((r) => r.data)
     },
-    refresh: (refreshToken: string) =>
-      http.post('/auth/refresh', { refreshToken }).then((r) => r.data),
+    refresh: () =>
+      http.post('/auth/refresh').then((r) => r.data),
   },
 
   // Worker discovery (client-facing)

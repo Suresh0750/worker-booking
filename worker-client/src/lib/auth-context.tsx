@@ -31,11 +31,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setUser = useCallback((u: AuthUser | null) => {
     setUserState(u)
     if (u) tokenStore.setUser(u)
-    else tokenStore.clear()
+    else void tokenStore.clear()
   }, [])
 
   const logout = useCallback(() => {
-    tokenStore.clear()
+    void tokenStore.clear()
     setUserState(null)
     window.location.href = '/auth/login'
   }, [])

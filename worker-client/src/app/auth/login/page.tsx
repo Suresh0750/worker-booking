@@ -1,32 +1,17 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import toast from 'react-hot-toast'
-import {
-  Eye, EyeOff, Mail, Lock, ArrowRight, ShieldCheck, Sparkles,
-  User, Phone, CheckCircle2,
-} from 'lucide-react'
-import { loginSchema, LoginFormData, registerSchema, RegisterFormData } from '@/lib/validations'
-import { api, tokenStore, toE164 } from '@/lib/api'
-import { useAuth } from '@/lib/auth-context'
-import { Input } from '@/components/ui/Input'
+import {  useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+
 import { Logo } from '@/components/layout/Logo'
-import { Button } from '@/components/ui/Button'
-import { OtpModal } from '@/components/ui/OtpModal'
 import { cn } from '@/lib/utils'
-import { APP_ROLES, RegisterRole } from '@/constants/utils'
 import LoginForm from '@/components/users/LoginForm'
 import RegisterForm from '@/components/users/RegisterForm'
+import { Sparkles } from 'lucide-react'
 
 // ─── constants ────────────────────────────────────────────────────────────────
 type Tab = 'login' | 'register'
-type OtpChannel = 'email' | 'phone'
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const PHONE_REGEX = /^[6-9]\d{9}$/
 
 // ─── Page shell ───────────────────────────────────────────────────────────────
 export default function AuthPage() {

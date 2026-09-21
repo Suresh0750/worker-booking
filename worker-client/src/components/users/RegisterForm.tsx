@@ -123,7 +123,7 @@ function RegisterForm({ onSwitchTab }: { onSwitchTab: () => void }) {
         const res = await api.auth.register(data)
         if (!res.success) throw new Error(res.message)
         const loginRes = await api.auth.login({ email: data.email, password: data.password })
-        tokenStore.set(loginRes.data.accessToken, loginRes.data.refreshToken)
+        await tokenStore.set(loginRes.data.accessToken, loginRes.data.refreshToken)
         setUser(loginRes.data)
         toast.success('Account created! Welcome to WorkerHub 🎉')
         router.push(data.role === 'WORKER' ? '/worker/dashboard' : '/client/search')

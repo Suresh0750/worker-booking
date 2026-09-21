@@ -8,7 +8,7 @@ export default function HomePage() {
       {/* Nav */}
       <nav className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Logo />
+          <Logo variant='light' />
         </div>
         <div className="flex items-center gap-3">
           <Link href="/auth/login" className="btn-secondary py-2 px-4 text-sm">Login</Link>

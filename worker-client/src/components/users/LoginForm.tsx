@@ -46,13 +46,12 @@ function LoginForm({ onSwitchTab }: { onSwitchTab: () => void }) {
     try {
       const res = await api.auth.login(data)
       if (!res.success) throw new Error(res.message)
-      tokenStore.set(res.data.accessToken, res.data.refreshToken)
-      setUser(res.data)
+      tokenStore.setAccess(res.data.accessToken)
+      tokenStore.setUser({...res.data,...res.data.user})
+      setUser({...res.data,...res.data.user})
       toast.success('Welcome back!')
-      // Store email so the post-login verification banner can use it
       setLoggedInUser({ email: data.email })
-      // Don't redirect yet — let the user optionally verify their contact
-      // They can skip by clicking "Continue" or the OTP modal will auto-close
+      router.push(res.data.user.role === 'WORKER' ? '/worker/dashboard' : '/client/search')
     } catch (err: any) {
       toast.error(err?.response?.data?.message ?? err.message ?? 'Login failed')
     }
@@ -173,38 +172,6 @@ function LoginForm({ onSwitchTab }: { onSwitchTab: () => void }) {
         Your information is safe and secure
       </div>
 
-      {/* Post-login verification prompt — shown right after a successful login */}
-      {loggedInUser && (
-        <div className="rounded-xl border border-brand-200 bg-brand-50 p-4 space-y-3">
-          <p className="text-sm font-medium text-brand-800">
-            One more step — verify your contact info
-          </p>
-          <p className="text-xs text-brand-600">
-            Verify your email address to keep your account secure.
-          </p>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              size="sm"
-              isLoading={otpSending}
-              onClick={() => handleSendLoginOtp('email')}
-              className="flex-1"
-            >
-              <Mail className="w-3.5 h-3.5" />
-              Verify email
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="secondary"
-              onClick={redirectAfterLogin}
-              className="flex-1"
-            >
-              Skip for now
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* Switch to register */}
       <div className="pt-5 border-t border-slate-200 text-center">

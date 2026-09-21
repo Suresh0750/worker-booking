@@ -7,8 +7,6 @@ import {
   loginSchema,
   sendOtpSchema,
   verifyOtpSchema,
-  refreshTokenSchema,
-  logoutSchema,
 } from '@application/schemas/AuthSchemas'
 
 const router = Router()
@@ -31,11 +29,11 @@ router.post('/register',   validateRequest({ body: registerSchema }),   AuthCont
 // POST /auth/login
 router.post('/login',      validateRequest({ body: loginSchema }),      AuthController.login)
 
-// POST /auth/refresh
-router.post('/refresh',    validateRequest({ body: refreshTokenSchema }), AuthController.refresh)
+// POST /auth/refresh — refresh token is read from the httpOnly cookie
+router.post('/refresh',    AuthController.refresh)
 
-// POST /auth/logout
-router.post('/logout',     validateRequest({ body: logoutSchema }),     AuthController.logout)
+// POST /auth/logout — refresh token is read from the httpOnly cookie
+router.post('/logout',     AuthController.logout)
 
 // POST /auth/logout-all  — requires a valid user identity from API Gateway
 router.post('/logout-all', extractUser, AuthController.logoutAll)

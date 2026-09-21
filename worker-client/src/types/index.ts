@@ -12,7 +12,7 @@ export interface AuthUser {
   email: string
   role: Role
   accessToken: string
-  refreshToken: string
+  refreshToken?: string
 }
 
 export interface Location {

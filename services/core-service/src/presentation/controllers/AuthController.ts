@@ -9,6 +9,24 @@ import {
   otpUseCase,
 } from '@infrastructure/config/dependencies'
 
+const COOKIE_NAME = 'refresh_token'
+const IS_PROD     = process.env.NODE_ENV === 'production'
+const REFRESH_DAYS = parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN_DAYS ?? '30')
+
+function setRefreshCookie(res: Response, token: string) {
+  res.cookie(COOKIE_NAME, token, {
+    httpOnly: true,
+    secure:   IS_PROD,
+    sameSite: 'strict',
+    path:     '/',
+    maxAge:   REFRESH_DAYS * 24 * 60 * 60 * 1000,
+  })
+}
+
+function clearRefreshCookie(res: Response) {
+  res.clearCookie(COOKIE_NAME, { httpOnly: true, secure: IS_PROD, sameSite: 'strict', path: '/' })
+}
+
 export class AuthController {
 
   // POST /auth/register
@@ -23,7 +41,14 @@ export class AuthController {
   static async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await loginUser.execute(req.body)
-      res.status(HttpStatus.OK).json({ success: true, data: result })
+
+      // Store refresh token in httpOnly cookie — never expose it in the body
+      setRefreshCookie(res, result.refreshToken)
+
+      res.status(HttpStatus.OK).json({
+        success: true,
+        data: { accessToken: result.accessToken, user: result.user },
+      })
     } catch (err) { next(err) }
   }
 
@@ -43,18 +68,38 @@ export class AuthController {
     } catch (err) { next(err) }
   }
 
-  // POST /auth/refresh
+  // POST /auth/refresh — reads refresh token from cookie, not body
   static async refresh(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const result = await refreshAccessToken.execute(req.body)
-      res.status(HttpStatus.OK).json({ success: true, data: result })
+      const refreshToken = req.cookies[COOKIE_NAME] as string | undefined
+
+      if (!refreshToken) {
+        res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: 'No refresh token' })
+        return
+      }
+
+      const result = await refreshAccessToken.execute({ refreshToken })
+
+      // Rotate cookie with the new refresh token
+      setRefreshCookie(res, result.refreshToken)
+
+      res.status(HttpStatus.OK).json({
+        success: true,
+        data: { accessToken: result.accessToken },
+      })
     } catch (err) { next(err) }
   }
 
-  // POST /auth/logout
+  // POST /auth/logout — reads refresh token from cookie, not body
   static async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await logoutUser.execute(req.body)
+      const refreshToken = req.cookies[COOKIE_NAME] as string | undefined
+
+      if (refreshToken) {
+        await logoutUser.execute({ refreshToken })
+      }
+
+      clearRefreshCookie(res)
       res.status(HttpStatus.OK).json({ success: true, message: 'Logged out successfully' })
     } catch (err) { next(err) }
   }
@@ -75,11 +120,11 @@ export class AuthController {
     } catch (err) { next(err) }
   }
 
-
   static async logoutAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = (req as any).userId // injected by API Gateway → extractUser
       await logoutUser.executeAll(userId)
+      clearRefreshCookie(res)
       res.status(HttpStatus.OK).json({ success: true, message: 'Logged out from all devices' })
     } catch (err) { next(err) }
   }

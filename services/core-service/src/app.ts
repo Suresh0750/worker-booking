@@ -1,8 +1,9 @@
 import 'dotenv/config'
-import express     from 'express'
-import helmet      from 'helmet'
-import cors        from 'cors'
-import rateLimit   from 'express-rate-limit'
+import express        from 'express'
+import helmet         from 'helmet'
+import cors           from 'cors'
+import rateLimit      from 'express-rate-limit'
+import cookieParser   from 'cookie-parser'
 
 import authRoutes     from './presentation/routes/authRoutes'
 import userRoutes     from './presentation/routes/userRoutes'
@@ -26,6 +27,7 @@ app.use(cors({
 // ── Body parsing ──────────────────────────────────────────
 app.use(express.json({ limit: '10kb' }))
 app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())
 
 // ── Global rate limiter ───────────────────────────────────
 const globalLimiter = rateLimit({
