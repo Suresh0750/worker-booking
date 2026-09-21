@@ -23,10 +23,25 @@ export class PrismaOtpRepository implements IOtpRepository {
     identifier: string,
     purpose: OtpPurpose,
   ): Promise<OtpEntity | null> {
+    const where =
+  purpose === "PHONE_VERIFICATION"
+    ? {
+        identifier: {
+          contains: identifier,
+        },
+        purpose,
+      }
+    : {
+        identifier,
+        purpose,
+      };
+
     const record = await prisma.otp.findFirst({
-      where:   { identifier, purpose },
-      orderBy: { createdAt: 'desc' },
-    })
+      where,
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
     return record ? toOtpEntity(record) : null
   }
 

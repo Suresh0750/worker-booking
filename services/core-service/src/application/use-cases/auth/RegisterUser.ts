@@ -30,6 +30,10 @@ export class RegisterUser {
       this.fail(HttpStatus.BAD_REQUEST, 'Email is not verified. Please verify your email first')
     }
 
+    const existPhone = await this.authRepo.findByPhone(dto.phone);
+    if(existPhone){
+      this.fail(HttpStatus.CONFLICT, 'Phone already in use')
+    }
     // 3. Require verified phone OTP
     const phoneOtp = await this.otpRepo.findLatestByIdentifierAndPurpose(
       dto.phone,
