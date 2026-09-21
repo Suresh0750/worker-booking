@@ -1,18 +1,28 @@
+import { z } from 'zod'
 import { Role } from '../../domain/entities/User'
+import {
+  updateProfileSchema,
+  createAddressSchema,
+  updateAddressSchema,
+  idParamsSchema,
+  createProfileEventSchema,
+} from '../schemas/UserSchemas'
 
-// ── User DTOs ─────────────────────────────────────────────
+// ── Request types — derived from Zod schemas (single source of truth) ──
+export type UpdateProfileDto = z.infer<typeof updateProfileSchema>
+export type CreateAddressDto = z.infer<typeof createAddressSchema>
+export type UpdateAddressDto = z.infer<typeof updateAddressSchema>
+export type IdParamsDto      = z.infer<typeof idParamsSchema>
+export type CreateProfileEventDto = z.infer<typeof createProfileEventSchema>
+
+// ── Internal event DTO (kept for use cases) ───────────────
 export interface CreateProfileDto {
   userId: string
   email:  string
   role:   string
 }
 
-export interface UpdateProfileDto {
-  name?:   string
-  phone?:  string
-  avatar?: string
-}
-
+// ── Response DTOs ─────────────────────────────────────────
 export interface UserResponseDto {
   id:        string
   email:     string
@@ -21,28 +31,6 @@ export interface UserResponseDto {
   avatar:    string | null
   role:      Role
   createdAt: Date
-}
-
-// ── Address DTOs ──────────────────────────────────────────
-export interface CreateAddressDto {
-  line1:     string
-  line2?:    string
-  city:      string
-  state:     string
-  pincode:   string
-  lat?:      number
-  lng?:      number
-  isPrimary?: boolean
-}
-
-export interface UpdateAddressDto {
-  line1?:   string
-  line2?:   string
-  city?:    string
-  state?:   string
-  pincode?: string
-  lat?:     number
-  lng?:     number
 }
 
 export interface AddressResponseDto {

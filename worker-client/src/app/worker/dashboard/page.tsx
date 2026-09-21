@@ -11,6 +11,7 @@ import { api } from '@/lib/api'
 import { Navbar } from '@/components/layout/Navbar'
 import { formatCurrency, getInitials } from '@/lib/utils'
 import { cn } from '@/lib/utils'
+import { THEME } from '@/constants/theme'
 
 export default function WorkerDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
@@ -92,20 +93,20 @@ export default function WorkerDashboard() {
                 <AreaChart data={stats.earningsByMonth}>
                   <defs>
                     <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#16a34a" stopOpacity={0.15}/>
-                      <stop offset="95%" stopColor="#16a34a" stopOpacity={0}/>
+                      <stop offset="5%" stopColor={THEME.colors.primary} stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor={THEME.colors.primary} stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false}
+                  <CartesianGrid strokeDasharray="3 3" stroke={THEME.colors.surfaceAlt} />
+                  <XAxis dataKey="month" tick={{ fontSize: 12, fill: THEME.colors.scrollbarHover }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 12, fill: THEME.colors.scrollbarHover }} axisLine={false} tickLine={false}
                     tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
                   <Tooltip
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontSize: '13px' }}
                     formatter={(v: number) => [formatCurrency(v), 'Earnings']}
                   />
-                  <Area type="monotone" dataKey="amount" stroke="#16a34a" strokeWidth={2}
-                    fill="url(#earningsGrad)" dot={{ fill: '#16a34a', r: 4 }} />
+                  <Area type="monotone" dataKey="amount" stroke={THEME.colors.primary} strokeWidth={2}
+                    fill="url(#earningsGrad)" dot={{ fill: THEME.colors.primary, r: 4 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

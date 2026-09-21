@@ -2,12 +2,13 @@ import { Router } from 'express'
 import { UserController }    from '../controllers/UserController'
 import { AddressController } from '../controllers/AddressController'
 import { extractUser }       from '../middlewares/index'
+import { validateRequest }   from '../middlewares/validateRequest'
 import {
-  updateProfileValidation,
-  createAddressValidation,
-  updateAddressValidation,
-  validateRequest,
-} from '../middlewares/validateRequest'
+  updateProfileSchema,
+  createAddressSchema,
+  updateAddressSchema,
+  idParamsSchema,
+} from '../../application/schemas/UserSchemas'
 
 const router = Router()
 
@@ -16,14 +17,13 @@ const router = Router()
 router.get('/me', extractUser, UserController.getMe)
 
 // GET  /users/:id        → get any user by ID (used by other services)
-router.get('/:id', UserController.getById)
+router.get('/:id', validateRequest({ params: idParamsSchema }), UserController.getById)
 
 // PATCH /users/me        → update own profile
 router.patch(
   '/me',
   extractUser,
-  updateProfileValidation,
-  validateRequest,
+  validateRequest({ body: updateProfileSchema }),
   UserController.updateMe
 )
 
@@ -35,8 +35,7 @@ router.get('/me/addresses', extractUser, AddressController.getAll)
 router.post(
   '/me/addresses',
   extractUser,
-  createAddressValidation,
-  validateRequest,
+  validateRequest({ body: createAddressSchema }),
   AddressController.create
 )
 
@@ -44,15 +43,24 @@ router.post(
 router.patch(
   '/me/addresses/:id',
   extractUser,
-  updateAddressValidation,
-  validateRequest,
+  validateRequest({ params: idParamsSchema, body: updateAddressSchema }),
   AddressController.update
 )
 
 // PATCH  /users/me/addresses/:id/primary  → set as primary
-router.patch('/me/addresses/:id/primary', extractUser, AddressController.setPrimary)
+router.patch(
+  '/me/addresses/:id/primary',
+  extractUser,
+  validateRequest({ params: idParamsSchema }),
+  AddressController.setPrimary
+)
 
 // DELETE /users/me/addresses/:id      → delete an address
-router.delete('/me/addresses/:id', extractUser, AddressController.remove)
+router.delete(
+  '/me/addresses/:id',
+  extractUser,
+  validateRequest({ params: idParamsSchema }),
+  AddressController.remove
+)
 
 export default router

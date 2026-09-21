@@ -1,53 +1,21 @@
-import { Availability , MediaType} from '@domain/entities/Worker'
-// ── Request DTOs ──────────────────────────────────────────
-export interface CreateWorkerProfileDto {
-  userId: string
-  email:  string
-  name?:            string | null
-  phone?:           string | null
-  avatar?:          string | null
-  bio?:             string | null
-  experienceYears?: number
-  availability?:    Availability
-}
+import { z } from 'zod'
+import { Availability, MediaType } from '@domain/entities/Worker'
+import {
+  updateProfileSchema,
+  searchWorkersSchema,
+  addAddressSchema,
+  addPortfolioSchema,
+  setCategoriesSchema,
+  createWorkerProfileDataSchema,
+} from '../schemas/WorkerSchemas'
 
-export interface UpdateWorkerProfileDto {
-  name?:            string
-  phone?:           string
-  avatar?:          string
-  bio?:             string
-  experienceYears?: number
-  availability?:    Availability
-}
-
-export interface SearchWorkersDto {
-  lat:         number
-  lng:         number
-  radiusKm?:   number      // default 10km
-  categoryId?: string
-  city?:       string
-}
-
-export interface SetCategoriesDto {
-  categoryIds: string[]
-}
-
-export interface AddWorkerAddressDto {
-  line1:      string
-  line2?:     string
-  city:       string
-  state:      string
-  pincode:    string
-  lat:        number
-  lng:        number
-  isPrimary?: boolean
-}
-
-export interface AddPortfolioDto {
-  mediaUrl:  string
-  mediaType: MediaType
-  caption?:  string
-}
+// ── Request types — derived from Zod schemas (single source of truth) ──
+export type CreateWorkerProfileDto = z.infer<typeof createWorkerProfileDataSchema>
+export type UpdateWorkerProfileDto = z.infer<typeof updateProfileSchema>
+export type SearchWorkersDto       = z.infer<typeof searchWorkersSchema>
+export type SetCategoriesDto       = z.infer<typeof setCategoriesSchema>
+export type AddWorkerAddressDto    = z.infer<typeof addAddressSchema>
+export type AddPortfolioDto        = z.infer<typeof addPortfolioSchema>
 
 // ── Response DTOs ─────────────────────────────────────────
 export interface CategoryDto {

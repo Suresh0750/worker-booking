@@ -1,0 +1,290 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────
+// USER  (owns auth credentials + profile)
+// ─────────────────────────────────────────────────────────
+
+model User {
+  id             String    @id @default(uuid())
+  fullName       String    @map("full_name")
+  email          String    @unique
+  phone          String    @unique
+  secondaryPhone String?   @map("secondary_phone")
+  password       String
+  role           UserRole
+  gender         String?
+  dob            DateTime?
+  profileImage   String?   @map("profile_image")
+  isBlocked      Boolean   @default(false) @map("is_blocked")
+  authProvider   String?   @map("auth_provider")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  refreshTokens RefreshToken[]
+  addresses     Address[]      // shared by customers AND workers
+  workerProfile Worker?
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────────────────
+// ADDRESS  (single table for all user types)
+// ─────────────────────────────────────────────────────────
+
+model Address {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  line1     String
+  line2     String?
+  city      String
+  state     String
+  pincode   String
+  lat       Decimal?
+  lng       Decimal?
+  label     String?
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isPrimary]) // fast primary-address lookup for geo-search
+  @@map("addresses")
+}
+
+// ─────────────────────────────────────────────────────────
+// AUTH — REFRESH TOKENS
+// ─────────────────────────────────────────────────────────
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  ipAddress String?   @map("ip_address")
+  userAgent String?   @map("user_agent")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ─────────────────────────────────────────────────────────
+// AUTH — OTP
+// ─────────────────────────────────────────────────────────
+
+model Otp {
+  id          String     @id @default(uuid())
+  identifier  String
+  channel     OtpChannel
+  purpose     OtpPurpose
+  codeHash    String     @map("code_hash")
+  expiresAt   DateTime   @map("expires_at")
+  verifiedAt  DateTime?  @map("verified_at")
+  attempts    Int        @default(0)
+  maxAttempts Int        @default(5) @map("max_attempts")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@index([identifier, purpose])
+  @@index([expiresAt])
+  @@map("otps")
+}
+
+// ─────────────────────────────────────────────────────────
+// WORKER PROFILE  (one-to-one with User, role = WORKER)
+// ─────────────────────────────────────────────────────────
+
+model Worker {
+  id              String       @id @default(uuid())
+  userId          String       @unique @map("user_id")
+  bio             String?
+  experienceYears Int          @default(0) @map("experience_years")
+  avgRating       Decimal      @default(0) @map("avg_rating")
+  totalReviews    Int          @default(0) @map("total_reviews")
+  availability    Availability @default(AVAILABLE)
+  isVerified      Boolean      @default(false) @map("is_verified")
+  isActive        Boolean      @default(true) @map("is_active")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  // name / phone / email / profileImage come from User — no duplication
+  // addresses come from User.addresses — no separate address table needed
+  // geo-search: workers → users → addresses WHERE is_primary = true
+
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  portfolios       Portfolio[]
+  documents        WorkerDocument[]
+  workerCategories WorkerCategory[]
+  workerServices   WorkerService[]
+
+  @@map("workers")
+}
+
+// ─────────────────────────────────────────────────────────
+// WORKER DOCUMENT  (for identity / skill verification)
+// ─────────────────────────────────────────────────────────
+
+model WorkerDocument {
+  id              String             @id @default(uuid())
+  workerId        String             @map("worker_id")
+  documentType    WorkerDocumentType @map("document_type")
+  documentUrl     String             @map("document_url")
+  status          DocumentStatus     @default(PENDING)
+  rejectionReason String?            @map("rejection_reason")
+  verifiedAt      DateTime?          @map("verified_at")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+
+  worker Worker @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@index([workerId])
+  @@map("worker_documents")
+}
+
+// ─────────────────────────────────────────────────────────
+// PORTFOLIO
+// ─────────────────────────────────────────────────────────
+
+model Portfolio {
+  id         String    @id @default(uuid())
+  workerId   String    @map("worker_id")
+  mediaUrl   String    @map("media_url")
+  mediaType  MediaType @map("media_type")
+  caption    String?
+  uploadedAt DateTime  @default(now()) @map("uploaded_at")
+
+  worker Worker @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@index([workerId])
+  @@map("portfolios")
+}
+
+// ─────────────────────────────────────────────────────────
+// CATEGORIES & SERVICES
+// ─────────────────────────────────────────────────────────
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  services         Service[]
+  workerCategories WorkerCategory[]
+
+  @@map("categories")
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  categoryId  String   @map("category_id")
+  name        String
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  category       Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  workerServices WorkerService[]
+
+  @@unique([categoryId, name])
+  @@index([categoryId])
+  @@map("services")
+}
+
+model WorkerCategory {
+  workerId   String @map("worker_id")
+  categoryId String @map("category_id")
+
+  worker   Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([workerId, categoryId])
+  @@map("worker_categories")
+}
+
+model WorkerService {
+  id        String   @id @default(uuid())
+  workerId  String   @map("worker_id")
+  serviceId String   @map("service_id")
+  price     Decimal?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  worker  Worker  @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([workerId, serviceId])
+  @@index([workerId])
+  @@index([serviceId])
+  @@map("worker_services")
+}
+
+// ─────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────
+
+enum UserRole {
+  CUSTOMER
+  WORKER
+  ADMIN
+}
+
+enum OtpPurpose {
+  EMAIL_VERIFICATION
+  PHONE_VERIFICATION
+  PASSWORD_RESET
+  LOGIN
+}
+
+enum OtpChannel {
+  EMAIL
+  SMS
+}
+
+enum Availability {
+  AVAILABLE
+  BUSY
+  UNAVAILABLE
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum WorkerDocumentType {
+  AADHAAR
+  PAN_CARD
+  DRIVING_LICENSE
+  PASSPORT
+  WORK_PERMIT
+  CERTIFICATE
+  OTHER
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}

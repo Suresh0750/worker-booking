@@ -1,26 +1,30 @@
 import { Router } from 'express'
 import { WorkerController } from '../controllers/WorkerController'
+import { extractUser, validateRequest } from '../middlewares/index'
 import {
-  extractUser,
-  updateProfileValidation,
-  searchValidation,
-  addAddressValidation,
-  addPortfolioValidation,
-  setCategoriesValidation,
-  validateRequest,
-} from '../middlewares/index'
+  updateProfileSchema,
+  searchWorkersSchema,
+  addAddressSchema,
+  addPortfolioSchema,
+  setCategoriesSchema,
+  idParamsSchema,
+} from '../../application/schemas/WorkerSchemas'
 
 const router = Router()
 
 // ── Public routes — no auth needed ───────────────────────
 // GET  /workers/search?lat=&lng=&radiusKm=&categoryId=&city=
-router.get('/search', searchValidation, validateRequest, WorkerController.search)
+router.get(
+  '/search',
+  validateRequest({ query: searchWorkersSchema }),
+  WorkerController.search
+)
 
 // GET  /workers/categories
 router.get('/categories', WorkerController.getCategories)
 
 // GET  /workers/:id  — view any worker public profile
-router.get('/:id', WorkerController.getById)
+router.get('/:id', validateRequest({ params: idParamsSchema }), WorkerController.getById)
 
 // ── Protected routes — worker must be logged in ───────────
 // GET    /workers/me
@@ -30,8 +34,7 @@ router.get('/me', extractUser, WorkerController.getMe)
 router.patch(
   '/me',
   extractUser,
-  updateProfileValidation,
-  validateRequest,
+  validateRequest({ body: updateProfileSchema }),
   WorkerController.updateMe
 )
 
@@ -39,8 +42,7 @@ router.patch(
 router.put(
   '/me/categories',
   extractUser,
-  setCategoriesValidation,
-  validateRequest,
+  validateRequest({ body: setCategoriesSchema }),
   WorkerController.setCategories
 )
 
@@ -48,8 +50,7 @@ router.put(
 router.post(
   '/me/addresses',
   extractUser,
-  addAddressValidation,
-  validateRequest,
+  validateRequest({ body: addAddressSchema }),
   WorkerController.addAddress
 )
 
@@ -60,12 +61,16 @@ router.get('/me/portfolio', extractUser, WorkerController.getPortfolio)
 router.post(
   '/me/portfolio',
   extractUser,
-  addPortfolioValidation,
-  validateRequest,
+  validateRequest({ body: addPortfolioSchema }),
   WorkerController.addPortfolioItem
 )
 
 // DELETE /workers/me/portfolio/:id
-router.delete('/me/portfolio/:id', extractUser, WorkerController.deletePortfolioItem)
+router.delete(
+  '/me/portfolio/:id',
+  extractUser,
+  validateRequest({ params: idParamsSchema }),
+  WorkerController.deletePortfolioItem
+)
 
 export default router

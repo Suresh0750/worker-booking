@@ -43,13 +43,7 @@ export class UserController {
   // POST /internal/users  — called by Auth Service after register
   static async createProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { eventType, data } = req.body
-
-      if (eventType !== 'create_profile') {
-        res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: `Unknown eventType: ${eventType}` })
-        return
-      }
-
+      const { data } = req.body
       const result = await createProfile.execute(data)
       res.status(HttpStatus.CREATED).json({ success: true, data: result })
     } catch (err) { next(err) }

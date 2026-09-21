@@ -171,3 +171,83 @@ enum UserRole {
   WORKER
   ADMIN
 }
+
+
+model categories {
+  id          String     @id
+  name        String     @unique
+  slug        String     @unique
+  description String?
+  icon        String?
+  is_active   Boolean    @default(true)
+  sort_order  Int        @default(0)
+  created_at  DateTime   @default(now())
+  updated_at  DateTime
+  services    services[]
+}
+
+model services {
+  id              String            @id
+  category_id     String
+  name            String
+  slug            String            @unique
+  description     String?
+  is_active       Boolean           @default(true)
+  created_at      DateTime          @default(now())
+  updated_at      DateTime
+  categories      categories        @relation(fields: [category_id], references: [id])
+  worker_services worker_services[]
+
+  @@unique([category_id, name])
+  @@index([category_id])
+}
+
+model worker_services {
+  id         String   @id
+  worker_id  String
+  service_id String
+  price      Decimal?
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime
+  services   services @relation(fields: [service_id], references: [id], onDelete: Cascade)
+
+  @@unique([worker_id, service_id])
+  @@index([service_id])
+  @@index([worker_id])
+}
+
+model WorkerProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique @map("user_id")
+  about             String?
+  maxTravelDistance Int?     @map("max_travel_distance")
+  isApproved        Boolean  @default(false) @map("is_approved")
+  profileCompleted  Boolean  @default(false) @map("profile_completed")
+  baseLatitude      Decimal? @map("base_latitude")
+  baseLongitude     Decimal? @map("base_longitude")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("worker_profiles")
+}
+
+model UserAddress {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  address   String?
+  city      String?
+  state     String?
+  pincode   String?
+  latitude  Decimal?
+  longitude Decimal?
+  label     String?
+  isDefault Boolean  @default(false) @map("is_default")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_addresses")
+}

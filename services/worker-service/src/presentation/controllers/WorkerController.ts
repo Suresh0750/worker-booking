@@ -35,13 +35,13 @@ export class WorkerController {
   // GET /workers/search?lat=&lng=&radiusKm=&categoryId=&city=
   static async search(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { lat, lng, radiusKm, categoryId, city } = req.query
+      const { lat, lng, radiusKm, categoryId, city } = req.query as any
       const result = await searchWorkers.execute({
-        lat:        parseFloat(lat as string),
-        lng:        parseFloat(lng as string),
-        radiusKm:   radiusKm   ? parseFloat(radiusKm as string) : undefined,
-        categoryId: categoryId as string | undefined,
-        city:       city       as string | undefined,
+        lat,
+        lng,
+        radiusKm,
+        categoryId,
+        city,
       })
       res.status(HttpStatus.OK).json({ success: true, data: result, count: result.length })
     } catch (err) { next(err) }
@@ -133,20 +133,8 @@ export class WorkerController {
 
       const handlers: Record<string, () => Promise<any>> = {
         // Auth Service → create worker row (id + userId = auth user id, plus optional profile fields)
-        create_profile: async () => {
-          const payload = data as Partial<CreateWorkerProfileDto>
-          if (!payload?.userId || typeof payload.userId !== 'string') {
-            const err = new Error('userId is required')
-            ;(err as any).status = HttpStatus.BAD_REQUEST
-            throw err
-          }
-          if (!payload?.email || typeof payload.email !== 'string') {
-            const err = new Error('email is required')
-            ;(err as any).status = HttpStatus.BAD_REQUEST
-            throw err
-          }
-          return createWorkerProfile.execute(payload as CreateWorkerProfileDto)
-        },
+        create_profile: async () =>
+          createWorkerProfile.execute(data as CreateWorkerProfileDto),
 
         // Review Service → update rating after review submitted
         rating_updated: async () => updateRating.execute(data),

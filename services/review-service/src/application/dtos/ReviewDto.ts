@@ -1,14 +1,12 @@
-// ── Request DTOs ──────────────────────────────────────────
-export interface SubmitReviewDto {
-  bookingId: string
-  rating:    number   // 1 to 5
-  comment?:  string
-}
+import { z } from 'zod'
+import {
+  submitReviewSchema,
+  paginationSchema,
+} from '../schemas/ReviewSchemas'
 
-export interface GetReviewsDto {
-  page?:  number
-  limit?: number
-}
+// ── Request types — derived from Zod schemas (single source of truth) ──
+export type SubmitReviewDto = z.infer<typeof submitReviewSchema>
+export type GetReviewsDto   = z.infer<typeof paginationSchema>
 
 // ── Response DTOs ─────────────────────────────────────────
 export interface ReviewResponseDto {

@@ -1,0 +1,270 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" fill="none">
+  <!-- Background -->
+  <rect width="480" height="320" rx="16" fill="#f5f0e8"/>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- BACKGROUND ELEMENTS                -->
+  <!-- ═══════════════════════════════════ -->
+
+  <!-- House -->
+  <g transform="translate(42, 130)">
+    <!-- Roof -->
+    <polygon points="10,60 70,0 130,60" fill="#d4a574"/>
+    <polygon points="10,60 70,0 130,60" fill="#c4956a" opacity="0.4"/>
+    <!-- Wall -->
+    <rect x="20" y="60" width="100" height="70" fill="#e8d5b7"/>
+    <!-- Door -->
+    <rect x="52" y="90" width="28" height="40" rx="3" fill="#a0845c"/>
+    <circle cx="76" cy="111" r="2.5" fill="#d4a574"/>
+    <!-- Window left -->
+    <rect x="27" y="72" width="22" height="20" rx="2" fill="#87ceeb" opacity="0.8"/>
+    <line x1="38" y1="72" x2="38" y2="92" stroke="#c4956a" strokeWidth="1.5"/>
+    <line x1="27" y1="82" x2="49" y2="82" stroke="#c4956a" strokeWidth="1.5"/>
+    <!-- Window right -->
+    <rect x="91" y="72" width="22" height="20" rx="2" fill="#87ceeb" opacity="0.8"/>
+    <line x1="102" y1="72" x2="102" y2="92" stroke="#c4956a" strokeWidth="1.5"/>
+    <line x1="91" y1="82" x2="113" y2="82" stroke="#c4956a" strokeWidth="1.5"/>
+    <!-- Chimney -->
+    <rect x="85" y="12" width="14" height="25" fill="#c4956a"/>
+  </g>
+
+  <!-- Checklist / clipboard in background (behind worker) -->
+  <g transform="translate(290, 100)" opacity="0.6">
+    <rect x="0" y="0" width="70" height="85" rx="6" fill="white" stroke="#ddd" strokeWidth="1.5"/>
+    <rect x="22" y="-6" width="26" height="12" rx="4" fill="#ccc"/>
+    <!-- Lines -->
+    <line x1="10" y1="20" x2="60" y2="20" stroke="#e0e0e0" strokeWidth="2"/>
+    <line x1="10" y1="32" x2="60" y2="32" stroke="#e0e0e0" strokeWidth="2"/>
+    <line x1="10" y1="44" x2="60" y2="44" stroke="#e0e0e0" strokeWidth="2"/>
+    <line x1="10" y1="56" x2="50" y2="56" stroke="#e0e0e0" strokeWidth="2"/>
+    <!-- Check marks -->
+    <polyline points="10,18 13,22 20,14" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+    <polyline points="10,30 13,34 20,26" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+  </g>
+
+  <!-- Floating check badge top-right -->
+  <g transform="translate(370, 65)">
+    <circle cx="18" cy="18" r="18" fill="#fde68a" opacity="0.9"/>
+    <polyline points="9,18 15,24 27,11" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+  </g>
+
+  <!-- Floating check badge mid -->
+  <g transform="translate(400, 155)">
+    <circle cx="14" cy="14" r="14" fill="#bbf7d0" opacity="0.9"/>
+    <polyline points="7,14 11,18 21,9" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+  </g>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- LEFT PLANT                         -->
+  <!-- ═══════════════════════════════════ -->
+  <g transform="translate(30, 218)">
+    <rect x="8" y="30" width="20" height="22" rx="3" fill="#a0845c"/>
+    <ellipse cx="18" cy="30" rx="14" ry="18" fill="#4ade80" opacity="0.9"/>
+    <ellipse cx="6" cy="22" rx="10" ry="13" fill="#22c55e" opacity="0.8" transform="rotate(-20,6,22)"/>
+    <ellipse cx="30" cy="22" rx="10" ry="13" fill="#16a34a" opacity="0.8" transform="rotate(20,30,22)"/>
+  </g>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- RIGHT PLANT (pot)                  -->
+  <!-- ═══════════════════════════════════ -->
+  <g transform="translate(410, 220)">
+    <rect x="6" y="28" width="18" height="20" rx="3" fill="#c4956a"/>
+    <ellipse cx="15" cy="28" rx="12" ry="16" fill="#4ade80" opacity="0.9"/>
+    <ellipse cx="5" cy="20" rx="9" ry="12" fill="#22c55e" opacity="0.8" transform="rotate(-15,5,20)"/>
+    <ellipse cx="25" cy="20" rx="9" ry="12" fill="#16a34a" opacity="0.8" transform="rotate(15,25,20)"/>
+  </g>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- WOMAN (left figure)                -->
+  <!-- ═══════════════════════════════════ -->
+  <g transform="translate(95, 60)">
+
+    <!-- Phone screen glow -->
+    <rect x="-30" y="90" width="38" height="55" rx="6" fill="#93c5fd" opacity="0.35"/>
+
+    <!-- Body / teal top -->
+    <path d="M30,120 C10,118 2,140 0,170 L60,170 C58,140 50,118 30,120 Z" fill="#5eead4"/>
+    <!-- Collar -->
+    <path d="M22,121 L30,130 L38,121" fill="white" opacity="0.5"/>
+
+    <!-- Right arm (holding phone) -->
+    <path d="M12,130 C0,135 -10,145 -12,165 L0,165 C2,150 10,142 22,138 Z" fill="#5eead4"/>
+    <!-- Left arm (side) -->
+    <path d="M48,130 C58,138 64,148 62,165 L52,165 C54,150 50,140 42,136 Z" fill="#5eead4"/>
+
+    <!-- Phone -->
+    <rect x="-22" y="118" width="24" height="40" rx="4" fill="#1e293b"/>
+    <rect x="-20" y="121" width="20" height="33" rx="2" fill="#38bdf8"/>
+    <!-- Screen content (home icon on phone) -->
+    <rect x="-17" y="125" width="14" height="10" rx="2" fill="#0ea5e9" opacity="0.7"/>
+    <rect x="-17" y="138" width="6" height="6" rx="1" fill="white" opacity="0.6"/>
+    <rect x="-9" y="138" width="6" height="6" rx="1" fill="white" opacity="0.6"/>
+    <!-- Phone notch -->
+    <rect x="-14" y="122" width="8" height="2" rx="1" fill="#0f172a"/>
+
+    <!-- Black trousers -->
+    <rect x="12" y="168" width="18" height="50" rx="4" fill="#1e293b"/>
+    <rect x="32" y="168" width="18" height="50" rx="4" fill="#1e293b"/>
+    <!-- Shoes -->
+    <ellipse cx="21" cy="219" rx="12" ry="5" fill="#0f172a"/>
+    <ellipse cx="41" cy="219" rx="12" ry="5" fill="#0f172a"/>
+
+    <!-- Neck -->
+    <rect x="24" y="107" width="12" height="16" rx="4" fill="#f4a578"/>
+
+    <!-- Head -->
+    <ellipse cx="30" cy="96" rx="24" ry="26" fill="#f4a578"/>
+
+    <!-- Hair (brown, long) -->
+    <path d="M6,82 C4,60 8,40 30,38 C52,40 56,60 54,82 C58,75 60,60 56,45 C50,25 10,25 4,45 C0,60 2,75 6,82 Z" fill="#7c4e2d"/>
+    <!-- Side hair strands -->
+    <path d="M6,82 C2,100 4,115 8,125" stroke="#7c4e2d" strokeWidth="8" strokeLinecap="round" fill="none"/>
+    <path d="M54,82 C58,95 56,108 52,118" stroke="#7c4e2d" strokeWidth="6" strokeLinecap="round" fill="none"/>
+
+    <!-- Eyes -->
+    <ellipse cx="22" cy="96" rx="4" ry="4.5" fill="white"/>
+    <ellipse cx="38" cy="96" rx="4" ry="4.5" fill="white"/>
+    <circle cx="23" cy="97" r="2.5" fill="#3d2b1f"/>
+    <circle cx="39" cy="97" r="2.5" fill="#3d2b1f"/>
+    <circle cx="24" cy="96" r="1" fill="white"/>
+    <circle cx="40" cy="96" r="1" fill="white"/>
+
+    <!-- Eyebrows -->
+    <path d="M17,90 C20,88 24,88 27,90" stroke="#5a3a1a" strokeWidth="1.8" strokeLinecap="round" fill="none"/>
+    <path d="M33,90 C36,88 40,88 43,90" stroke="#5a3a1a" strokeWidth="1.8" strokeLinecap="round" fill="none"/>
+
+    <!-- Smile -->
+    <path d="M24,106 C27,110 33,110 36,106" stroke="#c97b5a" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+
+    <!-- Nose -->
+    <path d="M28,100 C27,103 29,105 30,105 C31,105 33,103 32,100" stroke="#c97b5a" strokeWidth="1" fill="none"/>
+  </g>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- WORKER (right figure)              -->
+  <!-- ═══════════════════════════════════ -->
+  <g transform="translate(265, 50)">
+
+    <!-- Coverall body (grey-blue) -->
+    <path d="M35,125 C12,122 2,145 0,178 L70,178 C68,145 58,122 35,125 Z" fill="#6b7fa3"/>
+    <!-- Coverall bib/chest -->
+    <rect x="22" y="124" width="26" height="30" rx="3" fill="#7d90b5"/>
+    <!-- ID badge -->
+    <rect x="28" y="132" width="14" height="18" rx="2" fill="white"/>
+    <rect x="30" y="134" width="10" height="5" rx="1" fill="#93c5fd"/>
+    <line x1="30" y1="142" x2="40" y2="142" stroke="#ccc" strokeWidth="1"/>
+    <line x1="30" y1="145" x2="38" y2="145" stroke="#ccc" strokeWidth="1"/>
+
+    <!-- Belt -->
+    <rect x="0" y="170" width="70" height="10" rx="0" fill="#4b5563"/>
+    <rect x="28" y="169" width="14" height="12" rx="2" fill="#9ca3af"/>
+    <!-- Belt loops / tools -->
+    <rect x="8" y="172" width="6" height="18" rx="2" fill="#374151"/>
+    <rect x="56" y="172" width="6" height="18" rx="2" fill="#374151"/>
+
+    <!-- Left arm (raised / waving) -->
+    <path d="M22,132 C10,125 -2,112 -4,96 L8,93 C10,106 18,118 30,126 Z" fill="#6b7fa3"/>
+    <!-- Raised hand -->
+    <ellipse cx="2" cy="88" rx="10" ry="13" fill="#f4a578"/>
+    <!-- Fingers -->
+    <rect x="-2" y="77" width="5" height="12" rx="2.5" fill="#f4a578"/>
+    <rect x="4" y="75" width="5" height="14" rx="2.5" fill="#f4a578"/>
+    <rect x="10" y="76" width="5" height="13" rx="2.5" fill="#f4a578"/>
+    <rect x="-7" y="80" width="5" height="10" rx="2.5" fill="#f4a578"/>
+
+    <!-- Right arm (holding toolbox) -->
+    <path d="M48,132 C58,138 68,148 70,168 L58,170 C58,155 52,144 42,136 Z" fill="#6b7fa3"/>
+
+    <!-- Legs -->
+    <rect x="10" y="176" width="22" height="55" rx="5" fill="#4b5e7a"/>
+    <rect x="38" y="176" width="22" height="55" rx="5" fill="#4b5e7a"/>
+
+    <!-- Work boots -->
+    <ellipse cx="21" cy="232" rx="16" ry="6" fill="#292524"/>
+    <ellipse cx="49" cy="232" rx="16" ry="6" fill="#292524"/>
+    <!-- Boot highlight -->
+    <ellipse cx="15" cy="230" rx="8" ry="3" fill="#44403c" opacity="0.5"/>
+    <ellipse cx="43" cy="230" rx="8" ry="3" fill="#44403c" opacity="0.5"/>
+
+    <!-- Neck -->
+    <rect x="28" y="110" width="14" height="18" rx="5" fill="#f4a578"/>
+
+    <!-- Head -->
+    <ellipse cx="35" cy="96" rx="26" ry="28" fill="#f4a578"/>
+
+    <!-- Hair (short, dark brown) -->
+    <path d="M9,80 C10,55 18,40 35,40 C52,40 60,55 61,80 C65,65 62,44 54,34 C46,24 24,24 16,34 C8,44 5,65 9,80 Z" fill="#4a3728"/>
+    <!-- Beard stubble area -->
+    <path d="M15,106 C18,118 26,122 35,122 C44,122 52,118 55,106" fill="#c97b5a" opacity="0.25"/>
+
+    <!-- Beard -->
+    <path d="M20,108 C22,116 28,120 35,120 C42,120 48,116 50,108" stroke="#7c4e2d" strokeWidth="2" fill="#c49a7a" opacity="0.5"/>
+
+    <!-- Eyes -->
+    <ellipse cx="26" cy="95" rx="4.5" ry="5" fill="white"/>
+    <ellipse cx="44" cy="95" rx="4.5" ry="5" fill="white"/>
+    <circle cx="27" cy="96" r="2.8" fill="#3d2b1f"/>
+    <circle cx="45" cy="96" r="2.8" fill="#3d2b1f"/>
+    <circle cx="28" cy="95" r="1.2" fill="white"/>
+    <circle cx="46" cy="95" r="1.2" fill="white"/>
+
+    <!-- Eyebrows -->
+    <path d="M20,88 C23,85 28,85 31,87" stroke="#4a3728" strokeWidth="2" strokeLinecap="round" fill="none"/>
+    <path d="M38,87 C41,85 46,85 50,88" stroke="#4a3728" strokeWidth="2" strokeLinecap="round" fill="none"/>
+
+    <!-- Smile -->
+    <path d="M27,108 C30,113 40,113 43,108" stroke="#c97b5a" strokeWidth="1.8" strokeLinecap="round" fill="none"/>
+
+    <!-- Nose -->
+    <path d="M32,100 C31,104 33,106 35,106 C37,106 39,104 38,100" stroke="#c97b5a" strokeWidth="1.2" fill="none"/>
+
+    <!-- Toolbox -->
+    <g transform="translate(54, 190)">
+      <!-- Box body -->
+      <rect x="0" y="10" width="50" height="32" rx="4" fill="#e53e3e"/>
+      <!-- Box top stripe -->
+      <rect x="0" y="10" width="50" height="8" rx="4" fill="#c53030"/>
+      <!-- Handle -->
+      <path d="M15,10 L15,2 C15,-2 35,-2 35,2 L35,10" stroke="#a0aec0" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+      <!-- Latch -->
+      <rect x="19" y="14" width="12" height="6" rx="2" fill="#f6ad55"/>
+      <!-- Stripes on box -->
+      <line x1="0" y1="26" x2="50" y2="26" stroke="#c53030" strokeWidth="1" opacity="0.5"/>
+    </g>
+  </g>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- FLOATING PHONE APP PREVIEW         -->
+  <!-- (small, near woman's phone)        -->
+  <!-- ═══════════════════════════════════ -->
+  <g transform="translate(60, 155)" opacity="0.85">
+    <rect x="0" y="0" width="44" height="30" rx="6" fill="white" filter="url(#shadow)"/>
+    <!-- House mini icon -->
+    <polygon points="10,20 22,10 34,20" fill="#22c55e"/>
+    <rect x="14" y="20" width="16" height="10" fill="#16a34a"/>
+    <rect x="19" y="22" width="6" height="8" fill="#f0fdf4"/>
+    <!-- Star rating dots -->
+    <circle cx="8" cy="26" r="2" fill="#fbbf24"/>
+    <circle cx="15" cy="26" r="2" fill="#fbbf24"/>
+    <circle cx="22" cy="26" r="2" fill="#fbbf24"/>
+    <circle cx="29" cy="26" r="2" fill="#fbbf24"/>
+    <circle cx="36" cy="26" r="2" fill="#e5e7eb"/>
+  </g>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- GROUND LINE                        -->
+  <!-- ═══════════════════════════════════ -->
+  <line x1="30" y1="292" x2="450" y2="292" stroke="#e2d5be" strokeWidth="2" opacity="0.7"/>
+
+  <!-- Shadow under woman -->
+  <ellipse cx="130" cy="294" rx="38" ry="7" fill="#c4956a" opacity="0.2"/>
+  <!-- Shadow under worker -->
+  <ellipse cx="310" cy="294" rx="42" ry="7" fill="#c4956a" opacity="0.2"/>
+
+  <!-- Defs for drop shadow filter -->
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#00000020"/>
+    </filter>
+  </defs>
+</svg>

@@ -17,7 +17,7 @@ export const loginSchema = z.object({
 
 export const registerSchema = z
   .object({
-    name: z.string().trim().min(2, 'Name must be at least 2 characters').max(60, 'Name is too long'),
+    fullName: z.string().trim().min(2, 'Name must be at least 2 characters').max(60, 'Name is too long'),
     phone: z
       .string()
       .trim()
@@ -27,11 +27,14 @@ export const registerSchema = z
     password: z.string().trim().min(8, 'Password must be at least 8 characters').regex(/[A-Z]/, 'Must contain at least one uppercase letter').regex(/[a-z]/, 'Must contain at least one lowercase letter').regex(/[0-9]/, 'Must contain at least one number'),
     confirmPassword: z.string().min(1, 'Please confirm your password'),
     role: z.enum([APP_ROLES.CUSTOMER, APP_ROLES.WORKER], { required_error: 'Please select a role' }),
+    isVerifyEmail: z.literal(true, { errorMap: () => ({ message: 'Please verify your email address' }) }),
+    isVerifyPhone: z.literal(true, { errorMap: () => ({ message: 'Please verify your phone number' }) }),
   })
   .refine((d) => d.password === d.confirmPassword, {
     message: 'Passwords do not match',
     path: ['confirmPassword'],
   })
+  
 
 // ─────────────────────────────────────────────
 // Slot schema

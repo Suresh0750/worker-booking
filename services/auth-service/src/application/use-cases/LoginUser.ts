@@ -30,12 +30,12 @@ export class LoginUser {
     const accessToken = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET as string,
-      { expiresIn: (process.env.JWT_EXPIRES_IN ?? '15m') as any }
+      { expiresIn: (process.env.JWT_EXPIRES_IN!) as any }
     )
 
     // 4. Create long-lived refresh token (30 days) — stored in DB for rotation
     const refreshToken = uuid()
-    const days = parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN_DAYS ?? '30')
+    const days = parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN_DAYS!)
     const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
 
     await this.authRepo.saveRefreshToken({ token: refreshToken, userId: user.id, expiresAt })

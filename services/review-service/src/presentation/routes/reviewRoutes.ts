@@ -1,11 +1,12 @@
 import { Router } from 'express'
 import { ReviewController } from '../controllers/ReviewController'
+import { extractUser, validateRequest } from '../middlewares/index'
 import {
-  extractUser,
-  validateRequest,
-  submitReviewValidation,
-  paginationValidation,
-} from '../middlewares/index'
+  submitReviewSchema,
+  paginationSchema,
+  bookingIdParamsSchema,
+  workerIdParamsSchema,
+} from '../../application/schemas/ReviewSchemas'
 
 const router = Router()
 
@@ -13,8 +14,7 @@ const router = Router()
 router.post(
   '/',
   extractUser,
-  submitReviewValidation,
-  validateRequest,
+  validateRequest({ body: submitReviewSchema }),
   ReviewController.submit,
 )
 
@@ -22,23 +22,29 @@ router.post(
 router.get(
   '/my',
   extractUser,
-  paginationValidation,
-  validateRequest,
+  validateRequest({ query: paginationSchema }),
   ReviewController.getMy,
 )
 
 // GET    /reviews/booking/:bookingId      → review for a specific booking (public)
-router.get('/booking/:bookingId', ReviewController.getByBooking)
+router.get(
+  '/booking/:bookingId',
+  validateRequest({ params: bookingIdParamsSchema }),
+  ReviewController.getByBooking,
+)
 
 // GET    /reviews/worker/:workerId        → all reviews for a worker (public)
 router.get(
   '/worker/:workerId',
-  paginationValidation,
-  validateRequest,
+  validateRequest({ params: workerIdParamsSchema, query: paginationSchema }),
   ReviewController.getWorkerReviews,
 )
 
 // GET    /reviews/worker/:workerId/stats  → rating stats + breakdown (public)
-router.get('/worker/:workerId/stats', ReviewController.getWorkerStats)
+router.get(
+  '/worker/:workerId/stats',
+  validateRequest({ params: workerIdParamsSchema }),
+  ReviewController.getWorkerStats,
+)
 
 export default router

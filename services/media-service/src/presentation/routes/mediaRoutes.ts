@@ -4,7 +4,12 @@ import { upload }          from '../../infrastructure/config/multer'
 import {
   extractUser,
   multerErrorHandler,
+  validateRequest,
 } from '../middlewares/index'
+import {
+  uploadMediaSchema,
+  idParamsSchema,
+} from '../../application/schemas/MediaSchemas'
 
 const router = Router()
 
@@ -20,6 +25,7 @@ router.post(
   extractUser,
   upload.single('file'),   // 'file' is the field name in the form
   multerErrorHandler,      // catches multer size/type errors before they hit global handler
+  validateRequest({ body: uploadMediaSchema }),
   MediaController.upload,
 )
 
@@ -27,6 +33,11 @@ router.post(
 router.get('/my', extractUser, MediaController.getMy)
 
 // DELETE /media/:id → delete file from S3 + database
-router.delete('/:id', extractUser, MediaController.remove)
+router.delete(
+  '/:id',
+  extractUser,
+  validateRequest({ params: idParamsSchema }),
+  MediaController.remove,
+)
 
 export default router

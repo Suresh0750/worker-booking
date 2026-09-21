@@ -37,10 +37,8 @@ export class ReviewController {
   static async getMy(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = (req as any).userId
-      const result = await getMyReviews.execute(userId, {
-        page:  req.query.page  ? parseInt(req.query.page  as string) : undefined,
-        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
-      })
+      const { page, limit } = req.query as any
+      const result = await getMyReviews.execute(userId, { page, limit })
       res.status(HttpStatus.OK).json({ success: true, ...result })
     } catch (err) {
       next(err)
@@ -60,10 +58,8 @@ export class ReviewController {
   // GET /reviews/worker/:workerId
   static async getWorkerReviews(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const result = await getWorkerReviews.execute(req.params.workerId, {
-        page:  req.query.page  ? parseInt(req.query.page  as string) : undefined,
-        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
-      })
+      const { page, limit } = req.query as any
+      const result = await getWorkerReviews.execute(req.params.workerId, { page, limit })
       res.status(HttpStatus.OK).json({ success: true, ...result })
     } catch (err) {
       next(err)

@@ -1,35 +1,19 @@
-import { BookingStatus } from '../entities/Booking'
+import { z } from 'zod'
+import { BookingStatus } from '../../domain/entities/Booking'
+import {
+  createBookingSchema,
+  updateStatusSchema,
+  updatePriceSchema,
+  sendMessageSchema,
+  getBookingsSchema,
+} from '../schemas/BookingSchemas'
 
-// ── Request DTOs ──────────────────────────────────────────
-export interface CreateBookingDto {
-  workerId:    string
-  categoryId:  string
-  description: string
-  address:     string
-  city:        string
-  lat?:        number
-  lng?:        number
-  scheduledAt?: string
-}
-
-export interface UpdateStatusDto {
-  status: BookingStatus
-  note?:  string
-}
-
-export interface UpdatePriceDto {
-  priceAgreed: number
-}
-
-export interface SendMessageDto {
-  content: string
-}
-
-export interface GetBookingsDto {
-  status?: BookingStatus
-  page?:   number
-  limit?:  number
-}
+// ── Request types — derived from Zod schemas (single source of truth) ──
+export type CreateBookingDto = z.infer<typeof createBookingSchema>
+export type UpdateStatusDto  = z.infer<typeof updateStatusSchema>
+export type UpdatePriceDto   = z.infer<typeof updatePriceSchema>
+export type SendMessageDto   = z.infer<typeof sendMessageSchema>
+export type GetBookingsDto   = z.infer<typeof getBookingsSchema>
 
 // ── Response DTOs ─────────────────────────────────────────
 export interface BookingResponseDto {

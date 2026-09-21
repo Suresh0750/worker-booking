@@ -39,10 +39,11 @@ export class BookingController {
     try {
       const userId   = (req as any).userId
       const userRole = (req as any).userRole?.toLowerCase() === 'worker' ? 'worker' : 'user'
+      const { status, page, limit } = req.query as any
       const result   = await getMyBookings.execute(userId, userRole, {
-        status: req.query.status as any,
-        page:   req.query.page  ? parseInt(req.query.page  as string) : undefined,
-        limit:  req.query.limit ? parseInt(req.query.limit as string) : undefined,
+        status,
+        page,
+        limit,
       })
       res.status(HttpStatus.OK).json({ success: true, ...result })
     } catch (err) {

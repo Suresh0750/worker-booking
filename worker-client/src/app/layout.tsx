@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
+import type { CSSProperties } from 'react'
 import { Plus_Jakarta_Sans, Sora } from 'next/font/google'
-import { Toaster } from 'react-hot-toast'
-import { AuthProvider } from '@/lib/auth-context'
+import { THEME_CSS_VARS } from '@/constants/theme'
 import './globals.css'
 import Providers from './Providers'
 
@@ -24,8 +24,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${plusJakarta.variable} ${sora.variable}`}>
-      <body className="font-sans bg-surface-secondary text-slate-900 antialiased">
+    <html
+      lang="en"
+      className={`${plusJakarta.variable} ${sora.variable}`}
+      style={THEME_CSS_VARS as CSSProperties}
+    >
+      <body className="font-sans bg-surface-secondary text-text antialiased">
         <Providers>
           {children}
         </Providers>

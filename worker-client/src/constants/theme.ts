@@ -21,5 +21,40 @@ export const THEME = {
     textMuted: '#64748b',
     border: '#e2e8f0',
     danger: '#ef4444',
+    scrollbar: '#cbd5e1',
+    scrollbarHover: '#94a3b8',
   },
 } as const
+
+// Brand shades without a semantic THEME key yet.
+// Kept as constants so the full brand scale stays defined;
+// replace these with semantic keys as the theme grows.
+const BRAND_FALLBACK = {
+  100: '#dcfce7',
+  300: '#86efac',
+  500: '#22c55e',
+  800: '#166534',
+  900: '#14532d',
+} as const
+
+export const THEME_CSS_VARS: Record<string, string> = {
+  '--brand-50': THEME.colors.primarySoft,
+  '--brand-100': BRAND_FALLBACK[100],
+  '--brand-200': THEME.colors.primaryBorder,
+  '--brand-300': BRAND_FALLBACK[300],
+  '--brand-400': THEME.colors.primaryLight,
+  '--brand-500': BRAND_FALLBACK[500],
+  '--brand-600': THEME.colors.primary,
+  '--brand-700': THEME.colors.primaryHover,
+  '--brand-800': BRAND_FALLBACK[800],
+  '--brand-900': BRAND_FALLBACK[900],
+  '--surface': THEME.colors.background,
+  '--surface-secondary': THEME.colors.surface,
+  '--surface-tertiary': THEME.colors.surfaceAlt,
+  '--color-text': THEME.colors.text,
+  '--color-text-muted': THEME.colors.textMuted,
+  '--color-border': THEME.colors.border,
+  '--color-danger': THEME.colors.danger,
+  '--color-scrollbar': THEME.colors.scrollbar,
+  '--color-scrollbar-hover': THEME.colors.scrollbarHover,
+}

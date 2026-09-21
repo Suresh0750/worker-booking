@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { WorkerController }     from '../controllers/WorkerController'
-import { verifyInternalSecret } from '../middlewares/index'
+import { verifyInternalSecret, validateRequest } from '../middlewares/index'
+import { internalEventSchema }  from '../../application/schemas/WorkerSchemas'
 
 const router = Router()
 
@@ -10,6 +11,11 @@ const router = Router()
 //   eventType: "rating_updated" → from Review Service after review submitted
 //   eventType: "media_uploaded" → from Media Service after S3 upload
 // Kafka migration: each eventType becomes its own topic consumer
-router.post('/workers', verifyInternalSecret, WorkerController.handleInternalEvent)
+router.post(
+  '/workers',
+  verifyInternalSecret,
+  validateRequest({ body: internalEventSchema }),
+  WorkerController.handleInternalEvent
+)
 
 export default router

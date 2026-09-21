@@ -1,14 +1,14 @@
 import { Router } from 'express'
 import { BookingController } from '../controllers/BookingController'
+import { extractUser, validateRequest } from '../middlewares/index'
 import {
-  extractUser,
-  validateRequest,
-  createBookingValidation,
-  updateStatusValidation,
-  updatePriceValidation,
-  sendMessageValidation,
-  getBookingsValidation,
-} from '../middlewares/index'
+  createBookingSchema,
+  updateStatusSchema,
+  updatePriceSchema,
+  sendMessageSchema,
+  getBookingsSchema,
+  idParamsSchema,
+} from '../../application/schemas/BookingSchemas'
 
 const router = Router()
 
@@ -19,8 +19,7 @@ const router = Router()
 router.post(
   '/',
   extractUser,
-  createBookingValidation,
-  validateRequest,
+  validateRequest({ body: createBookingSchema }),
   BookingController.create,
 )
 
@@ -28,20 +27,23 @@ router.post(
 router.get(
   '/my',
   extractUser,
-  getBookingsValidation,
-  validateRequest,
+  validateRequest({ query: getBookingsSchema }),
   BookingController.getMy,
 )
 
 // GET    /bookings/:id          → get single booking + messages
-router.get('/:id', extractUser, BookingController.getOne)
+router.get(
+  '/:id',
+  extractUser,
+  validateRequest({ params: idParamsSchema }),
+  BookingController.getOne,
+)
 
 // PATCH  /bookings/:id/status   → update booking status (state machine)
 router.patch(
   '/:id/status',
   extractUser,
-  updateStatusValidation,
-  validateRequest,
+  validateRequest({ params: idParamsSchema, body: updateStatusSchema }),
   BookingController.updateStatus,
 )
 
@@ -49,24 +51,32 @@ router.patch(
 router.patch(
   '/:id/price',
   extractUser,
-  updatePriceValidation,
-  validateRequest,
+  validateRequest({ params: idParamsSchema, body: updatePriceSchema }),
   BookingController.updatePrice,
 )
 
 // GET    /bookings/:id/messages → get all messages for a booking
-router.get('/:id/messages', extractUser, BookingController.getMessages)
+router.get(
+  '/:id/messages',
+  extractUser,
+  validateRequest({ params: idParamsSchema }),
+  BookingController.getMessages,
+)
 
 // POST   /bookings/:id/messages → send a message
 router.post(
   '/:id/messages',
   extractUser,
-  sendMessageValidation,
-  validateRequest,
+  validateRequest({ params: idParamsSchema, body: sendMessageSchema }),
   BookingController.sendMessage,
 )
 
 // GET    /bookings/:id/logs     → full status change audit trail
-router.get('/:id/logs', extractUser, BookingController.getStatusLogs)
+router.get(
+  '/:id/logs',
+  extractUser,
+  validateRequest({ params: idParamsSchema }),
+  BookingController.getStatusLogs,
+)
 
 export default router

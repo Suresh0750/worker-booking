@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { Location } from '@/types'
 import { cn } from '@/lib/utils'
+import { THEME } from '@/constants/theme'
 
 interface LocationPickerProps {
   onSelect: (location: Location) => void
@@ -49,10 +50,10 @@ function buildIcon(L: any) {
     className: '',
     html: `<div style="
       width:32px;height:32px;
-      background:#16a34a;
+      background:${THEME.colors.primary};
       border-radius:50% 50% 50% 0;
       transform:rotate(-45deg);
-      border:3px solid #fff;
+      border:3px solid ${THEME.colors.onPrimary};
       box-shadow:0 2px 8px rgba(0,0,0,0.3);
     "></div>`,
     iconSize:   [32, 32],
