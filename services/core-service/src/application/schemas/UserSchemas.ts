@@ -44,6 +44,8 @@ export const updateProfileSchema = z.object({
     .optional(),
 
   profileImage: z.string().url('Profile image must be a valid URL').optional(),
+  bio : z.string().optional(),
+  experienceYears : z.number().optional()
 })
 
 export const createAddressSchema = z.object({

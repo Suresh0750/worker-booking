@@ -13,6 +13,8 @@
     "db:seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1139.0",
+    "@aws-sdk/lib-storage": "^3.1139.0",
     "@prisma/client": "^5.7.0",
     "@types/multer": "^2.2.0",
     "bcryptjs": "^2.4.3",

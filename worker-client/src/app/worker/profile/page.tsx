@@ -102,23 +102,27 @@ export default function MyProfilePage() {
   useEffect(() => {
     if (authLoading) return
 
-    // ✅ Context already has full data from login — seed immediately, no API call
-    if (user?.fullName) {
-      setAvatarPreview(user.profileImage ?? null)
+    // If context has full worker data (bio + experienceYears present), seed immediately
+    // bio can be null/empty but experienceYears should be a number if worker data was loaded
+    const hasWorkerData = user?.fullName && typeof user?.experienceYears === 'number'
+
+    if (hasWorkerData) {
+      setAvatarPreview(user!.profileImage ?? null)
       reset({
-        fullName:        user.fullName,
-        phone:           user.phone,
-        secondaryPhone:  user.secondaryPhone ?? '',
-        gender:          (user.gender as any) ?? '',
-        dob:             user.dob ? user.dob.slice(0, 10) : '',
-        bio:             user.bio ?? '',
-        experienceYears: user.experienceYears ?? 0,
+        fullName:        user!.fullName,
+        phone:           user!.phone,
+        secondaryPhone:  user!.secondaryPhone ?? '',
+        gender:          (user!.gender as any) ?? '',
+        dob:             user!.dob ? user!.dob.slice(0, 10) : '',
+        bio:             user!.bio ?? '',
+        experienceYears: user!.experienceYears ?? 0,
       })
       setPageLoading(false)
       return
     }
 
-    // ⬇️ Fallback: stale/old session — fetch GET /workers/me once, hydrate context
+    // ⬇️ Fallback: worker fields missing from context (old session / stale cache)
+    // Fetch GET /workers/me to get the complete profile including bio + experienceYears
     api.worker.getFullProfile()
       .then(res => {
         const p = res.data
@@ -126,13 +130,13 @@ export default function MyProfilePage() {
         reset({
           fullName:        p.fullName,
           phone:           p.phone,
-          secondaryPhone:  (p as any).secondaryPhone ?? '',
-          gender:          (p as any).gender ?? '',
-          dob:             (p as any).dob ? (p as any).dob.slice(0, 10) : '',
+          secondaryPhone:  p.secondaryPhone ?? '',
+          gender:          (p.gender as any) ?? '',
+          dob:             p.dob ? p.dob.slice(0, 10) : '',
           bio:             p.bio ?? '',
-          experienceYears: p.experienceYears,
+          experienceYears: p.experienceYears ?? 0,
         })
-        // Hydrate context so future visits skip the API
+        // Hydrate context so future visits skip the API call
         patchUser({
           fullName:        p.fullName,
           phone:           p.phone,
@@ -145,7 +149,7 @@ export default function MyProfilePage() {
       })
       .catch(() => toast.error('Failed to load profile'))
       .finally(() => setPageLoading(false))
-  }, [authLoading, user, reset, patchUser])
+  }, [authLoading, user?.experienceYears, user?.fullName, reset, patchUser])
 
   // ── Avatar upload ───────────────────────────────────────────────────────────
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -179,9 +183,7 @@ export default function MyProfilePage() {
   // ── Save — two parallel PATCH calls for two separate tables ────────────────
   const onSubmit = async (data: FormData) => {
     try {
-      const [, workerRes] = await Promise.all([
-        // PATCH /users/me — only send fields that have a real value
-        api.worker.updateUserFields({
+      const workerRes  = await api.worker.updateUserFields({
           fullName: data.fullName,
           phone:    data.phone,
           ...(data.secondaryPhone !== undefined
@@ -189,13 +191,9 @@ export default function MyProfilePage() {
             : {}),
           ...(data.gender ? { gender: data.gender } : {}),
           ...(data.dob   ? { dob:    data.dob   }   : {}),
-        }),
-        // PATCH /workers/me — only worker-specific fields
-        api.worker.updateWorkerFields({
-          ...(data.bio             !== undefined ? { bio:             data.bio             } : {}),
+           ...(data.bio             !== undefined ? { bio:             data.bio             } : {}),
           ...(data.experienceYears !== undefined ? { experienceYears: Number(data.experienceYears) } : {}),
-        }),
-      ])
+        })
 
       // Keep context in sync — sidebar name updates instantly
       patchUser({

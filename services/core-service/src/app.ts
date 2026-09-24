@@ -4,6 +4,7 @@ import helmet         from 'helmet'
 import cors           from 'cors'
 import rateLimit      from 'express-rate-limit'
 import cookieParser   from 'cookie-parser'
+import path           from 'path'
 
 import authRoutes     from './presentation/routes/authRoutes'
 import userRoutes     from './presentation/routes/userRoutes'
@@ -23,6 +24,9 @@ app.use(cors({
   origin:      process.env.ALLOWED_ORIGINS?.split(',') ?? '*',
   credentials: true,
 }))
+
+// ── Static files (uploads) ────────────────────────────────
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')))
 
 // ── Body parsing ──────────────────────────────────────────
 app.use(express.json({ limit: '10kb' }))

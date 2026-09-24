@@ -30,4 +30,27 @@ export class UserController {
       res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
+
+  // PATCH /users/me/avatar
+  static async updateAvatar(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // File uploaded via multer middleware is available at req.file
+      const file = (req as any).file
+      
+      if (!file) {
+        res.status(HttpStatus.BAD_REQUEST).json({ 
+          success: false, 
+          message: 'No image file uploaded' 
+        })
+        return
+      }
+
+      // Build the public URL for the uploaded file
+      // In production, this should be a cloud storage URL (S3, Cloudinary, etc.)
+      const profileImage = `/uploads/${file.filename}`
+
+      const result = await updateUserProfile.execute((req as any).userId, { profileImage })
+      res.status(HttpStatus.OK).json({ success: true, data: { profileImage: result.profileImage } })
+    } catch (err) { next(err) }
+  }
 }

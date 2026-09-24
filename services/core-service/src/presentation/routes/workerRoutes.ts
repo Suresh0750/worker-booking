@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { WorkerController } from '../controllers/WorkerController'
-import { extractUser }      from '../middlewares/extractUser'
+import { authenticateJwt }  from '../middlewares/authenticateJwt'
 import { validateRequest }  from '../middlewares/validateRequest'
 import {
   searchWorkersSchema,
@@ -24,35 +24,35 @@ router.get('/categories', WorkerController.getCategories)
 // ── Protected routes — declared BEFORE /:id so 'me' isn't matched as an id ──
 
 // GET /workers/me
-router.get('/me', extractUser, WorkerController.getMe)
+router.get('/me', authenticateJwt, WorkerController.getMe)
 
 // PATCH /workers/me
-router.patch('/me', extractUser, validateRequest({ body: updateWorkerProfileSchema }), WorkerController.updateMe)
+router.patch('/me', authenticateJwt, validateRequest({ body: updateWorkerProfileSchema }), WorkerController.updateMe)
 
 // PUT /workers/me/categories
-router.put('/me/categories', extractUser, validateRequest({ body: setCategoriesSchema }), WorkerController.setCategories)
+router.put('/me/categories', authenticateJwt, validateRequest({ body: setCategoriesSchema }), WorkerController.setCategories)
 
 // ── Portfolio ──────────────────────────────────────────────
 
 // GET  /workers/me/portfolio
-router.get('/me/portfolio', extractUser, WorkerController.getPortfolioItems)
+router.get('/me/portfolio', authenticateJwt, WorkerController.getPortfolioItems)
 
 // POST /workers/me/portfolio
-router.post('/me/portfolio', extractUser, validateRequest({ body: addPortfolioSchema }), WorkerController.addPortfolio)
+router.post('/me/portfolio', authenticateJwt, validateRequest({ body: addPortfolioSchema }), WorkerController.addPortfolio)
 
 // DELETE /workers/me/portfolio/:id
-router.delete('/me/portfolio/:id', extractUser, validateRequest({ params: idParamsSchema }), WorkerController.removePortfolio)
+router.delete('/me/portfolio/:id', authenticateJwt, validateRequest({ params: idParamsSchema }), WorkerController.removePortfolio)
 
 // ── Documents ──────────────────────────────────────────────
 
 // GET  /workers/me/documents
-router.get('/me/documents', extractUser, WorkerController.getDocuments)
+router.get('/me/documents', authenticateJwt, WorkerController.getDocuments)
 
 // POST /workers/me/documents
-router.post('/me/documents', extractUser, validateRequest({ body: uploadDocumentSchema }), WorkerController.uploadDocument)
+router.post('/me/documents', authenticateJwt, validateRequest({ body: uploadDocumentSchema }), WorkerController.uploadDocument)
 
 // DELETE /workers/me/documents/:id
-router.delete('/me/documents/:id', extractUser, validateRequest({ params: idParamsSchema }), WorkerController.removeDocument)
+router.delete('/me/documents/:id', authenticateJwt, validateRequest({ params: idParamsSchema }), WorkerController.removeDocument)
 
 // GET /workers/:id  — MUST be last so literal paths above are matched first
 router.get('/:id', validateRequest({ params: idParamsSchema }), WorkerController.getById)

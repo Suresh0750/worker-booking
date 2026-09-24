@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { AuthController } from '../controllers/AuthController'
 import { validateRequest } from '../middlewares/validateRequest'
-import { extractUser } from '../middlewares/extractUser'
+import { authenticateJwt } from '../middlewares/authenticateJwt'
 import {
   registerSchema,
   loginSchema,
@@ -35,7 +35,7 @@ router.post('/refresh',    AuthController.refresh)
 // POST /auth/logout — refresh token is read from the httpOnly cookie
 router.post('/logout',     AuthController.logout)
 
-// POST /auth/logout-all  — requires a valid user identity from API Gateway
-router.post('/logout-all', extractUser, AuthController.logoutAll)
+// POST /auth/logout-all  — requires a valid JWT
+router.post('/logout-all', authenticateJwt, AuthController.logoutAll)
 
 export default router
