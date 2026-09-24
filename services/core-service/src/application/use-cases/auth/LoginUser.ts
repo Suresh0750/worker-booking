@@ -7,6 +7,7 @@ import { IUserRepository } from '@domain/interfaces/IUserRepository'
 import { IWorkerRepository } from '@domain/interfaces/IWorkerRepository'
 import { LoginInput } from '../../schemas/AuthSchemas'
 import { LoginResponseDto } from '../../dtos/AuthDto'
+import { getImageUrl } from '@infrastructure/services/storage.service'
 
 export class LoginUser {
   constructor(
@@ -58,6 +59,7 @@ export class LoginUser {
         }
       }
     }
+    const imageUrl = await getImageUrl(profile?.profileImage ?? user!.profileImage!)
 
     return {
       accessToken,
@@ -71,7 +73,7 @@ export class LoginUser {
         secondaryPhone: profile?.secondaryPhone ?? null,
         gender:         profile?.gender     ?? null,
         dob:            profile?.dob        ? (profile.dob as Date).toISOString() : null,
-        profileImage:   profile?.profileImage ?? user!.profileImage,
+        profileImage:   imageUrl,
         ...workerExtra,
       },
     }

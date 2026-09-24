@@ -35,7 +35,7 @@ import { GetUserProfile }    from '@application/use-cases/user/GetUserProfile'
 import { UpdateUserProfile } from '@application/use-cases/user/UpdateUserProfile'
 
 export const getUserProfile    = new GetUserProfile(userRepo, addressRepo)
-export const updateUserProfile = new UpdateUserProfile(userRepo)
+export const updateUserProfile = new UpdateUserProfile(userRepo,workerRepo)
 
 // ── Address use cases ─────────────────────────────────────
 import {
