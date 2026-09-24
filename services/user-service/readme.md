@@ -1,6 +1,0 @@
-CREATE DATABASE auth_db;
-CREATE DATABASE user_db;
-CREATE DATABASE worker_db;
-CREATE DATABASE booking_db;
-CREATE DATABASE review_db;
-CREATE DATABASE media_db;
