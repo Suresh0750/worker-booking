@@ -240,7 +240,7 @@ export default function MyProfilePage() {
           <div className="w-20 h-20 rounded-2xl bg-brand-100 overflow-hidden flex items-center justify-center">
             {avatarPreview ? (
               <img
-                src={avatarPreview}
+                src={ avatarPreview}
                 alt="Profile photo"
                 className="w-full h-full object-cover"
               />

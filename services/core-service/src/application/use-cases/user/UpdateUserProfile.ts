@@ -15,6 +15,9 @@ export class UpdateUserProfile {
     }
 
     const updated = await this.userRepo.update(userId, dto)
+    if(dto.bio || dto.experienceYears){
+      
+    }
 
     return {
       id:             updated.id,
