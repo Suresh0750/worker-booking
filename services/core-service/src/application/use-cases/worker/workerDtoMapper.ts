@@ -49,3 +49,19 @@ export function toWorkerAddressDto(wA : WorkerAddressDto):WorkerAddressDto{
       isPrimary: wA.isPrimary,
     }
 }
+
+
+export function toGetWorkerAddressDto(wA : WorkerAddressDto[]):WorkerAddressDto[]{
+  return wA.map((a)=>({
+      id:        a.id,
+      line1:     a.line1,
+      line2:     a.line2,
+      city:      a.city,
+      state:     a.state,
+      pincode:   a.pincode,
+      lat:       a.lat !== null ? Number(a.lat) : null,
+      lng:       a.lng !== null ? Number(a.lng) : null,
+      label:     a.label,
+      isPrimary: a.isPrimary,
+    }))
+}

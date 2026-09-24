@@ -57,6 +57,7 @@ router.delete('/me/documents/:id', authenticateJwt, validateRequest({ params: id
 
 // GET /workers/:id  — MUST be last so literal paths above are matched first
 router.get('/:id', validateRequest({ params: idParamsSchema }), WorkerController.getById)
-router.post('/addresses',authenticateJwt, validateRequest({ body: createWorkerAddress }), WorkerController.createAddress)
+router.post('/addresses',authenticateJwt, validateRequest({ body: createWorkerAddress }), WorkerController.createAddress);
+router.post('/addresses',authenticateJwt, WorkerController.getAddress);
 
 export default router

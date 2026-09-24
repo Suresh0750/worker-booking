@@ -2,7 +2,7 @@ import { WorkerAddressDto } from '@application/dtos/WorkerDto'
 import { HttpStatus } from '@domain/enums/HttpStatus'
 import { CreateAddressInput, IAddressRepository } from '@domain/interfaces/IAddressRepository'
 import { IWorkerRepository } from '@domain/interfaces/IWorkerRepository'
-import { toWorkerAddressDto } from './workerDtoMapper'
+import { toGetWorkerAddressDto, toWorkerAddressDto } from './workerDtoMapper'
 
 export interface UpdateRatingInput {
   workerId:     string
@@ -24,5 +24,17 @@ export interface UpdateRatingInput {
     const result = await this.addressRepo.create(dto)
     return toWorkerAddressDto(result)
   }
+  async get(userId : string):Promise<WorkerAddressDto[]>{
+  const worker = await this.workerRepo.findByUserId(userId)
+      if (!worker) {
+        const err = new Error('Worker not found') as Error & { status?: number }
+        err.status = HttpStatus.NOT_FOUND
+        throw err
+      }
+      const result = await this.addressRepo.findByUserId(userId)
+      return toGetWorkerAddressDto(result);
+    }
 }
+
+
 

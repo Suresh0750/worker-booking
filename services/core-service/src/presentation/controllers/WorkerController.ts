@@ -199,4 +199,13 @@ export class WorkerController {
       res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
+  static async getAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await workersAddress.get({
+        ...req.body,
+        userId: (req as any).userId
+      })
+      res.status(HttpStatus.OK).json({ success: true, data: result })
+    } catch (err) { next(err) }
+  }
 }
