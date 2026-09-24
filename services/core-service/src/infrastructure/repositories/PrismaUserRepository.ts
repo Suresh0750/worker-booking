@@ -24,6 +24,7 @@ export class PrismaUserRepository implements IUserRepository {
       data:  {
         ...(data.fullName       !== undefined && { fullName:       data.fullName }),
         ...(data.phone          !== undefined && { phone:          data.phone }),
+        // null is a valid value here — it clears the field in the DB
         ...(data.secondaryPhone !== undefined && { secondaryPhone: data.secondaryPhone }),
         ...(data.gender         !== undefined && { gender:         data.gender }),
         ...(data.dob            !== undefined && { dob:            data.dob }),

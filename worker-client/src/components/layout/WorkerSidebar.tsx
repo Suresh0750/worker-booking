@@ -23,7 +23,7 @@ import {
   Menu,
   X,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
@@ -66,6 +66,9 @@ export function WorkerSidebar() {
     logout()
     toast.success('Logged out')
   }
+  useEffect(()=>{
+    console.log("user",user)
+  },[user])
 
   const sidebarContent = (
     <aside className="flex flex-col h-full">

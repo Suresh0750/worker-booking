@@ -203,15 +203,47 @@ export const api = {
     deletePhoto: (url: string) =>
       http.delete('/worker/photos', { data: { url } }).then((r) => r.data),
 
-    // Full profile (User + Worker merged)
+    // Full profile (User + Worker merged) — GET /workers/me
     getFullProfile: () =>
-      http.get<ApiResponse<WorkerFullProfile>>('/worker/me').then((r) => r.data),
-    updateFullProfile: (body: unknown) =>
-      http.put<ApiResponse<WorkerFullProfile>>('/worker/me', body).then((r) => r.data),
+      http.get<ApiResponse<WorkerFullProfile>>('/workers/me').then((r) => r.data),
+
+    // Update worker-specific fields (bio, experienceYears, availability) — PATCH /workers/me
+    updateWorkerFields: (body: { bio?: string; experienceYears?: number; availability?: string }) => {
+      const clean = Object.fromEntries(
+        Object.entries(body).filter(([, v]) => v !== undefined && v !== '')
+      )
+      return http.patch<ApiResponse<WorkerFullProfile>>('/workers/me', clean).then((r) => r.data)
+    },
+
+    // Update user-level fields (fullName, phone, gender, dob, etc.) — PATCH /users/me
+    updateUserFields: (body: {
+      fullName?: string; phone?: string; secondaryPhone?: string;
+      gender?: string; dob?: string; profileImage?: string
+    }) => {
+      // Strip undefined and empty-string values so the backend schema doesn't fail validation
+      const clean = Object.fromEntries(
+        Object.entries(body).filter(([, v]) => v !== undefined && v !== '')
+      )
+      return http.patch<ApiResponse<{ id: string }>>('/users/me', clean).then((r) => r.data)
+    },
+
+    // Kept for backwards-compat — calls both endpoints
+    updateFullProfile: async (body: {
+      fullName?: string; phone?: string; secondaryPhone?: string;
+      gender?: string; dob?: string;
+      bio?: string; experienceYears?: number;
+    }) => {
+      const { bio, experienceYears, ...userFields } = body
+      await http.patch('/users/me', userFields)
+      const res = await http.patch<ApiResponse<WorkerFullProfile>>('/workers/me', { bio, experienceYears })
+      return res.data
+    },
+
     uploadProfileImage: async (file: File) => {
       const form = new FormData()
       form.append('image', file)
-      return http.post<ApiResponse<{ url: string }>>('/worker/me/avatar', form, {
+      // Upload to user profile image endpoint
+      return http.patch<ApiResponse<{ profileImage: string }>>('/users/me/avatar', form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       }).then((r) => r.data)
     },

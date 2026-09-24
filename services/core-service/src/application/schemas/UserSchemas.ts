@@ -1,15 +1,49 @@
 import { z } from 'zod'
 
-const PHONE_REGEX   = /^\+?[1-9]\d{7,14}$/
+// Accepts plain 10-digit OR E.164 format (+91XXXXXXXXXX)
+const PHONE_REGEX   = /^\d{10}$|^\+?[1-9]\d{9,14}$/
 const PINCODE_REGEX = /^\d{6}$/
 
 export const updateProfileSchema = z.object({
-  fullName:       z.string().min(2, 'Name must be 2-100 characters').max(100).optional(),
-  phone:          z.string().regex(PHONE_REGEX, 'Valid phone number required').optional(),
-  secondaryPhone: z.string().regex(PHONE_REGEX, 'Valid phone number required').optional(),
-  gender:         z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
-  dob:            z.coerce.date().optional(),
-  profileImage:   z.string().url('Profile image must be a valid URL').optional(),
+  fullName: z
+    .string()
+    .trim()
+    .min(2,   'Name must be 2-100 characters')
+    .max(100, 'Name must be 2-100 characters')
+    .optional(),
+
+  phone: z
+    .string()
+    .regex(PHONE_REGEX, 'Valid phone number required')
+    .optional(),
+
+  // Empty string = clear the field; valid phone = set it; absent = no change
+  secondaryPhone: z
+    .union([
+      z.string().regex(PHONE_REGEX, 'Valid phone number required'),
+      z.literal(''),
+    ])
+    .optional()
+    .transform(v => (v === '' ? null : v)),
+
+  gender: z
+    .union([z.enum(['MALE', 'FEMALE', 'OTHER']), z.literal('')])
+    .optional()
+    .transform(v => (v === '' ? undefined : v)),
+
+  // Accept ISO date string or empty string
+  dob: z
+    .union([
+      z.string().min(1).transform(v => {
+        const d = new Date(v)
+        if (isNaN(d.getTime())) throw new Error('Invalid date')
+        return d
+      }),
+      z.literal('').transform(() => undefined),
+    ])
+    .optional(),
+
+  profileImage: z.string().url('Profile image must be a valid URL').optional(),
 })
 
 export const createAddressSchema = z.object({

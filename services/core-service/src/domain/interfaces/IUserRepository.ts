@@ -9,12 +9,12 @@ export interface CreateUserProfileInput {
 }
 
 export interface UpdateUserProfileInput {
-  fullName?:      string
-  phone?:         string
-  secondaryPhone?: string
-  gender?:        string
-  dob?:           Date
-  profileImage?:  string
+  fullName?:       string
+  phone?:          string
+  secondaryPhone?: string | null    // null = clear the field
+  gender?:         string
+  dob?:            Date
+  profileImage?:   string
 }
 
 export interface IUserRepository {

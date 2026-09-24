@@ -50,13 +50,7 @@ function LoginForm({ onSwitchTab }: { onSwitchTab: () => void }) {
       // 1. Store access token
       tokenStore.setAccess(res.data.accessToken)
 
-      // 2. Persist refresh token in httpOnly cookie via Next.js proxy
-      await fetch('/api/auth/set-tokens', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: (res.data as any).refreshToken }),
-      })
-
+      
       // 3. Build the AuthUser object from the full login response
       const loginUser = res.data.user as any
       const authUser = {

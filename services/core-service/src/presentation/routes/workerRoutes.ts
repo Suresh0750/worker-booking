@@ -21,10 +21,7 @@ router.get('/search',     validateRequest({ query: searchWorkersSchema }), Worke
 // GET /workers/categories
 router.get('/categories', WorkerController.getCategories)
 
-// GET /workers/:id  — must be AFTER /search and /categories
-router.get('/:id', validateRequest({ params: idParamsSchema }), WorkerController.getById)
-
-// ── Protected routes (JWT required via extractUser) ───────
+// ── Protected routes — declared BEFORE /:id so 'me' isn't matched as an id ──
 
 // GET /workers/me
 router.get('/me', extractUser, WorkerController.getMe)
@@ -56,5 +53,8 @@ router.post('/me/documents', extractUser, validateRequest({ body: uploadDocument
 
 // DELETE /workers/me/documents/:id
 router.delete('/me/documents/:id', extractUser, validateRequest({ params: idParamsSchema }), WorkerController.removeDocument)
+
+// GET /workers/:id  — MUST be last so literal paths above are matched first
+router.get('/:id', validateRequest({ params: idParamsSchema }), WorkerController.getById)
 
 export default router
