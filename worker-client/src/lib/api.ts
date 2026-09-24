@@ -157,6 +157,12 @@ export const api = {
       http.get<ApiResponse<TimeSlot[]>>(`/workers/${workerId}/slots`).then((r) => r.data),
   },
 
+  // Public location lookup used by dependent address fields
+  locations: {
+    search: (params: { searchKey: 'state' | 'city' | 'pincode'; search?: string; state?: string; city?: string }) =>
+      http.get<ApiResponse<string[]>>('/locations', { params }).then((r) => r.data),
+  },
+
   // Bookings (client-facing)
   bookings: {
     create: (body: unknown) =>

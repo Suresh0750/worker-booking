@@ -14,6 +14,94 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { cn } from '@/lib/utils'
 
+type LocationSearchKey = 'state' | 'city' | 'pincode'
+
+function LocationSelect({
+  label,
+  value,
+  searchKey,
+  state,
+  city,
+  error,
+  disabled,
+  onChange,
+}: {
+  label: string
+  value: string
+  searchKey: LocationSearchKey
+  state?: string
+  city?: string
+  error?: string
+  disabled?: boolean
+  onChange: (value: string) => void
+}) {
+  const [search, setSearch] = useState('')
+  const [options, setOptions] = useState<string[]>([])
+  const [isOpen, setIsOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    if (disabled || !isOpen) return
+    const timer = window.setTimeout(() => {
+      setIsLoading(true)
+      api.locations.search({ searchKey, search, state, city })
+        .then(res => setOptions(res.data ?? []))
+        .catch(() => setOptions([]))
+        .finally(() => setIsLoading(false))
+    }, 250)
+    return () => window.clearTimeout(timer)
+  }, [city, disabled, isOpen, search, searchKey, state])
+
+  return (
+    <div className="relative w-full">
+      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+        {label}<span className="text-red-500 ml-1">*</span>
+      </label>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setIsOpen(open => !open)}
+        className={cn(
+          'input-base text-left flex items-center justify-between disabled:bg-slate-50 disabled:text-slate-400',
+          error && 'input-error'
+        )}
+      >
+        <span className={value ? 'text-slate-900' : 'text-slate-400'}>
+          {value || `Select ${label.toLowerCase()}`}
+        </span>
+        <span className="text-slate-400">{isOpen ? '−' : '+'}</span>
+      </button>
+      {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
+      {isOpen && !disabled && (
+        <div className="absolute z-20 mt-1 w-full rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
+          <Input
+            autoFocus
+            value={search}
+            onChange={event => setSearch(event.target.value)}
+            placeholder={`Search ${label.toLowerCase()}...`}
+            rightIcon={isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}
+          />
+          <div className="mt-1 max-h-44 overflow-y-auto">
+            {options.map(option => (
+              <button
+                type="button"
+                key={option}
+                onClick={() => { onChange(option); setSearch(''); setIsOpen(false) }}
+                className="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-brand-50 hover:text-brand-700"
+              >
+                {option}
+              </button>
+            ))}
+            {!isLoading && options.length === 0 && (
+              <p className="px-3 py-2 text-xs text-slate-400">No matches found</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 const addressSchema = z.object({
   line1:   z.string().min(3, 'Street address is required'),
   line2:   z.string().optional(),
@@ -36,8 +124,13 @@ export default function MyAddressPage() {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<AddressFormData>({ resolver: zodResolver(addressSchema) })
+
+  const selectedState = watch('state')
+  const selectedCity = watch('city')
 
   useEffect(() => {
     api.worker.getAddresses()
@@ -158,10 +251,40 @@ export default function MyAddressPage() {
               placeholder="Near bus stand, apartment name…"
               {...register('line2')}
             />
-            <div className="grid grid-cols-3 gap-3">
-              <Input label="City" required error={errors.city?.message} {...register('city')} />
-              <Input label="State" required error={errors.state?.message} {...register('state')} />
-              <Input label="Pincode" required error={errors.pincode?.message} maxLength={6} {...register('pincode')} />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <LocationSelect
+                label="State"
+                value={selectedState ?? ''}
+                searchKey="state"
+                error={errors.state?.message}
+                onChange={value => {
+                  setValue('state', value, { shouldValidate: true })
+                  setValue('city', '', { shouldValidate: true })
+                  setValue('pincode', '', { shouldValidate: true })
+                }}
+              />
+              <LocationSelect
+                label="City"
+                value={selectedCity ?? ''}
+                searchKey="city"
+                state={selectedState}
+                error={errors.city?.message}
+                disabled={!selectedState}
+                onChange={value => {
+                  setValue('city', value, { shouldValidate: true })
+                  setValue('pincode', '', { shouldValidate: true })
+                }}
+              />
+              <LocationSelect
+                label="Pincode"
+                value={watch('pincode') ?? ''}
+                searchKey="pincode"
+                state={selectedState}
+                city={selectedCity}
+                error={errors.pincode?.message}
+                disabled={!selectedState || !selectedCity}
+                onChange={value => setValue('pincode', value, { shouldValidate: true })}
+              />
             </div>
             <Input
               label="Label (optional)"

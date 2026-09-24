@@ -45,12 +45,15 @@ import {
   SetPrimaryAddress,
   DeleteAddress,
 } from '@application/use-cases/address/AddressUseCases'
+import { GetLocations } from '@application/use-cases/location/GetLocations'
+import { JsonLocationRepository } from '../repositories/JsonLocationRepository'
 
 export const addAddress        = new AddAddress(addressRepo, userRepo)
 export const getAddresses      = new GetAddresses(addressRepo)
 export const updateAddress     = new UpdateAddress(addressRepo)
 export const setPrimaryAddress = new SetPrimaryAddress(addressRepo)
 export const deleteAddress     = new DeleteAddress(addressRepo)
+export const getLocations      = new GetLocations(new JsonLocationRepository())
 
 // ── Worker use cases ──────────────────────────────────────
 import { CreateWorkerProfile }                        from '@application/use-cases/worker/CreateWorkerProfile'
