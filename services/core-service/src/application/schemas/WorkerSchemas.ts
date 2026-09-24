@@ -92,6 +92,15 @@ export const mediaUploadedEventSchema = z.object({
   }),
 })
 
+export const createWorkerAddress = z.object({
+  city : z.string(),
+  label :  z.string().optional(),
+  line1 : z.string(),
+  line2 : z.string().optional(), 
+  pincode : z.string(),
+  state : z.string()
+})
+
 export const internalWorkerEventSchema = z.discriminatedUnion('eventType', [
   createWorkerEventSchema,
   ratingUpdatedEventSchema,

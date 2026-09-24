@@ -15,6 +15,7 @@ import documentRepo   from '../repositories/PrismaWorkerDocumentRepository'
 import otpDelivery    from '../services/OtpDeliveryService'
 
 export { default as categoryRepo } from '../repositories/PrismaCategoryRepository'
+export { default as workerRepo } from '../repositories/PrismaWorkerRepository'
 import categoryRepoInstance from '../repositories/PrismaCategoryRepository'
 
 // ── Auth use cases ────────────────────────────────────────
@@ -23,6 +24,7 @@ import { LoginUser }          from '@application/use-cases/auth/LoginUser'
 import { RefreshAccessToken } from '@application/use-cases/auth/RefreshAccessToken'
 import { LogoutUser }         from '@application/use-cases/auth/LogoutUser'
 import { OtpUseCase }         from '@application/use-cases/auth/OtpUseCase'
+
 
 export const registerUser       = new RegisterUser(authRepo, otpRepo, workerRepo)
 export const loginUser          = new LoginUser(authRepo, userRepo, workerRepo)
@@ -62,6 +64,7 @@ import { UpdateWorkerProfile, SetWorkerCategories }   from '@application/use-cas
 import { SearchWorkers }                              from '@application/use-cases/worker/SearchWorkers'
 import { UpdateWorkerRating }                         from '@application/use-cases/worker/UpdateWorkerRating'
 import { AddPortfolioItem, DeletePortfolioItem, GetPortfolio } from '@application/use-cases/worker/PortfolioUseCases'
+import {WorkersAddress}                                from '@application/use-cases/worker/workerAdress'
 import {
   UploadWorkerDocument,
   GetWorkerDocuments,
@@ -84,3 +87,4 @@ export const uploadWorkerDocument  = new UploadWorkerDocument(documentRepo, work
 export const getWorkerDocuments    = new GetWorkerDocuments(documentRepo, workerRepo)
 export const reviewWorkerDocument  = new ReviewWorkerDocument(documentRepo)
 export const deleteWorkerDocument  = new DeleteWorkerDocument(documentRepo, workerRepo)
+export const workersAddress         = new WorkersAddress(workerRepo, addressRepo);

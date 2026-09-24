@@ -1,5 +1,5 @@
 import { WorkerFullEntity } from '@domain/entities/Worker'
-import { WorkerProfileDto } from '../../dtos/WorkerDto'
+import { WorkerAddressDto, WorkerProfileDto } from '../../dtos/WorkerDto'
 
 // Centralised mapper — all worker use cases share this
 export function toWorkerProfileDto(w: WorkerFullEntity): WorkerProfileDto {
@@ -32,4 +32,20 @@ export function toWorkerProfileDto(w: WorkerFullEntity): WorkerProfileDto {
       isPrimary: a.isPrimary,
     })),
   }
+}
+
+
+export function toWorkerAddressDto(wA : WorkerAddressDto):WorkerAddressDto{
+  return{
+      id:        wA.id,
+      line1:     wA.line1,
+      line2:     wA.line2,
+      city:      wA.city,
+      state:     wA.state,
+      pincode:   wA.pincode,
+      lat:       wA.lat !== null ? Number(wA.lat) : null,
+      lng:       wA.lng !== null ? Number(wA.lng) : null,
+      label:     wA.label,
+      isPrimary: wA.isPrimary,
+    }
 }

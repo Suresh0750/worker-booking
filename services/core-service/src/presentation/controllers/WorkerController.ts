@@ -15,7 +15,10 @@ import {
   reviewWorkerDocument,
   deleteWorkerDocument,
   categoryRepo,
+  workerRepo,
+  workersAddress
 } from '@infrastructure/config/dependencies'
+
 
 export class WorkerController {
 
@@ -66,8 +69,6 @@ export class WorkerController {
   // PUT /workers/me/categories
   static async setCategories(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // setCategories needs workerId — resolve from userId first
-      const { workerRepo } = await import('@infrastructure/repositories/PrismaWorkerRepository')
       const worker = await workerRepo.findByUserId((req as any).userId)
       if (!worker) {
         res.status(HttpStatus.NOT_FOUND).json({ success: false, message: 'Worker not found' })
@@ -83,7 +84,6 @@ export class WorkerController {
   // GET /workers/me/portfolio
   static async getPortfolioItems(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { workerRepo } = await import('@infrastructure/repositories/PrismaWorkerRepository')
       const worker = await workerRepo.findByUserId((req as any).userId)
       if (!worker) {
         res.status(HttpStatus.NOT_FOUND).json({ success: false, message: 'Worker not found' })
@@ -97,7 +97,6 @@ export class WorkerController {
   // POST /workers/me/portfolio
   static async addPortfolio(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { workerRepo } = await import('@infrastructure/repositories/PrismaWorkerRepository')
       const worker = await workerRepo.findByUserId((req as any).userId)
       if (!worker) {
         res.status(HttpStatus.NOT_FOUND).json({ success: false, message: 'Worker not found' })
@@ -157,15 +156,13 @@ export class WorkerController {
         rating_updated: () => updateWorkerRating.execute(data),
 
         // Media Service → attach portfolio item after S3 upload
-        media_uploaded: () => {
-          const { workerRepo } = require('@infrastructure/repositories/PrismaWorkerRepository')
-          return workerRepo.findById(data.workerId).then((w: any) => {
-            if (!w) throw Object.assign(new Error('Worker not found'), { status: 404 })
-            return addPortfolioItem.execute(w.id, {
-              mediaUrl:  data.mediaUrl,
-              mediaType: data.mediaType,
-              caption:   data.caption,
-            })
+        media_uploaded: async () => {
+          const w = await workerRepo.findById(data.workerId)
+          if (!w) throw Object.assign(new Error('Worker not found'), { status: 404 })
+          return addPortfolioItem.execute(w.id, {
+            mediaUrl:  data.mediaUrl,
+            mediaType: data.mediaType,
+            caption:   data.caption,
           })
         },
       }
@@ -187,6 +184,18 @@ export class WorkerController {
   static async reviewDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await reviewWorkerDocument.execute(req.params.id, req.body)
+      res.status(HttpStatus.OK).json({ success: true, data: result })
+    } catch (err) { next(err) }
+  }
+
+  // - Worker Address
+  
+  static async createAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await workersAddress.execute({
+        ...req.body,
+        userId: (req as any).userId
+      })
       res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }

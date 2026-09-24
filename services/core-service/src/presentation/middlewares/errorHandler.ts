@@ -4,6 +4,7 @@ import { logger } from '@infrastructure/config/logger'
 
 export interface AppError extends Error {
   status?: number
+  code?: string
 }
 
 export const errorHandler = (
@@ -12,17 +13,28 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction,
 ): void => {
-  const status  = err.status ?? HttpStatus.INTERNAL_SERVER_ERROR
-  const message = err.message ?? 'Internal server error'
+  const status = err.status ?? HttpStatus.INTERNAL_SERVER_ERROR
 
-  if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
-    logger.error(`Unhandled error: ${err.stack}`)
-  }
+  // Log the real error internally
+  logger.error({
+    message: err.message,
+    stack: err.stack,
+    code: err.code,
+  })
+
+  // Never expose internal/database errors
+  const message =
+    status >= 500
+      ? 'Something went wrong. Please try again later.'
+      : err.message
 
   res.status(status).json({
     success: false,
     message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    ...(process.env.NODE_ENV === 'development' && {
+      // Even in development, be careful about exposing Prisma errors.
+      stack: err.stack,
+    }),
   })
 }
 
