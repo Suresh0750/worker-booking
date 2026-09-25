@@ -263,22 +263,30 @@ export function toWorkerDocumentEntity(record: {
 }
 
 /**
- * Maps a raw Prisma Portfolio record to the domain PortfolioEntity.
+ * Maps a raw Prisma Portfolio (media item) record to the domain PortfolioEntity.
+ *
+ * The DB schema uses a two-level structure:
+ *   PortfolioProject { workerId, ... } → Portfolio { projectId, mediaUrl, ... }
+ *
+ * The domain entity stays flat, so `workerId` is passed in from the parent
+ * PortfolioProject and `createdAt` is used as `uploadedAt`.
  */
-export function toPortfolioEntity(record: {
-  id: string
-  workerId: string
-  mediaUrl: string
-  mediaType: string
-  caption: string | null
-  uploadedAt: Date
-}): PortfolioEntity {
+export function toPortfolioEntity(
+  record: {
+    id:        string
+    mediaUrl:  string
+    mediaType: string
+    caption:   string | null
+    createdAt: Date
+  },
+  workerId: string,
+): PortfolioEntity {
   return {
     id:         record.id,
-    workerId:   record.workerId,
+    workerId,
     mediaUrl:   record.mediaUrl,
     mediaType:  record.mediaType as PortfolioEntity['mediaType'],
     caption:    record.caption,
-    uploadedAt: record.uploadedAt,
+    uploadedAt: record.createdAt,
   }
 }

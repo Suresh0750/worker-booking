@@ -33,7 +33,7 @@ import {
 const WORKER_FULL_INCLUDE = {
   user: true,
   workerCategories: { include: { category: true } },
-  portfolios:       true,
+  portfolioProjects: { include: { media: true } },   // correct relation name
   documents:        true,
 } as const
 
@@ -47,7 +47,10 @@ function buildFullEntity(w: any): WorkerFullEntity {
     profileImage: w.user.profileImage,
     // relations
     categories: w.workerCategories.map((wc: any) => toCategoryEntity(wc.category)),
-    portfolios: w.portfolios.map(toPortfolioEntity),
+    // Flatten PortfolioProject[] → PortfolioEntity[]
+    portfolios: (w.portfolioProjects as any[]).flatMap((project: any) =>
+      project.media.map((item: any) => toPortfolioEntity(item, w.id)),
+    ),
     documents:  w.documents.map(toWorkerDocumentEntity),
     addresses:  (w.user.addresses ?? []).map((a: any) => ({
       id:        a.id,
