@@ -12,6 +12,7 @@ import {
   createWorkerAddress,
   updateWorkerAddress
 } from '@application/schemas/WorkerSchemas'
+import { avatarUpload, documentUpload } from '@infrastructure/config/upload'
 
 const router = Router()
 
@@ -48,13 +49,13 @@ router.delete('/me/portfolio/:id', authenticateJwt, validateRequest({ params: id
 // ── Documents ──────────────────────────────────────────────
 
 // GET  /workers/me/documents
-router.get('/me/documents', authenticateJwt, WorkerController.getDocuments)
+router.get('/documents', authenticateJwt, WorkerController.getDocuments)
 
 // POST /workers/me/documents
-router.post('/me/documents', authenticateJwt, validateRequest({ body: uploadDocumentSchema }), WorkerController.uploadDocument)
+router.post('/documents', authenticateJwt, documentUpload.single('document'), validateRequest({ body: uploadDocumentSchema }), WorkerController.uploadDocument)
 
 // DELETE /workers/me/documents/:id
-router.delete('/me/documents/:id', authenticateJwt, validateRequest({ params: idParamsSchema }), WorkerController.removeDocument)
+router.delete('/documents/:id', authenticateJwt, validateRequest({ params: idParamsSchema }), WorkerController.removeDocument)
 
 
 // GET /workers/:id  — MUST be last so literal paths above are matched first

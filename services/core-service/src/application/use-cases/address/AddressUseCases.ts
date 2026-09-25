@@ -1,6 +1,10 @@
-import { HttpStatus } from '@domain/enums/HttpStatus'
 import { IAddressRepository } from '@domain/interfaces/IAddressRepository'
 import { IUserRepository } from '@domain/interfaces/IUserRepository'
+import {
+  NotFoundError,
+  ForbiddenError,
+  BadRequestError,
+} from '@domain/errors/AppError'
 import { CreateAddressInput, UpdateAddressInput } from '../../schemas/UserSchemas'
 import { AddressResponseDto } from '../../dtos/UserDto'
 
@@ -21,12 +25,6 @@ function toDto(a: any): AddressResponseDto {
   }
 }
 
-function appError(status: number, message: string): never {
-  const err = new Error(message) as Error & { status?: number }
-  err.status = status
-  throw err
-}
-
 // ── Add Address ───────────────────────────────────────────
 export class AddAddress {
   constructor(
@@ -36,9 +34,9 @@ export class AddAddress {
 
   async execute(userId: string, dto: CreateAddressInput): Promise<AddressResponseDto> {
     const user = await this.userRepo.findById(userId)
-    if (!user) appError(HttpStatus.NOT_FOUND, 'User not found')
+    if (!user) throw new NotFoundError('User not found')
 
-    const existing     = await this.addressRepo.findByUserId(userId)
+    const existing        = await this.addressRepo.findByUserId(userId)
     const shouldBePrimary = dto.isPrimary ?? existing.length === 0
 
     const address = await this.addressRepo.create({
@@ -71,8 +69,8 @@ export class UpdateAddress {
     dto: UpdateAddressInput,
   ): Promise<AddressResponseDto> {
     const address = await this.addressRepo.findById(addressId)
-    if (!address)               appError(HttpStatus.NOT_FOUND,  'Address not found')
-    if (address!.userId !== userId) appError(HttpStatus.FORBIDDEN, 'Forbidden')
+    if (!address)                 throw new NotFoundError('Address not found')
+    if (address.userId !== userId) throw new ForbiddenError('Forbidden')
 
     const updated = await this.addressRepo.update(addressId, dto)
     return toDto(updated)
@@ -85,8 +83,8 @@ export class SetPrimaryAddress {
 
   async execute(addressId: string, userId: string): Promise<void> {
     const address = await this.addressRepo.findById(addressId)
-    if (!address)               appError(HttpStatus.NOT_FOUND,  'Address not found')
-    if (address!.userId !== userId) appError(HttpStatus.FORBIDDEN, 'Forbidden')
+    if (!address)                 throw new NotFoundError('Address not found')
+    if (address.userId !== userId) throw new ForbiddenError('Forbidden')
 
     await this.addressRepo.setPrimary(addressId, userId)
   }
@@ -98,12 +96,11 @@ export class DeleteAddress {
 
   async execute(addressId: string, userId: string): Promise<void> {
     const address = await this.addressRepo.findById(addressId)
-    if (!address)               appError(HttpStatus.NOT_FOUND,  'Address not found')
-    if (address!.userId !== userId) appError(HttpStatus.FORBIDDEN, 'Forbidden')
+    if (!address)                 throw new NotFoundError('Address not found')
+    if (address.userId !== userId) throw new ForbiddenError('Forbidden')
 
-    if (address!.isPrimary) {
-      appError(
-        HttpStatus.BAD_REQUEST,
+    if (address.isPrimary) {
+      throw new BadRequestError(
         'Cannot delete primary address. Set another address as primary first.',
       )
     }

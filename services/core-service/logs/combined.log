@@ -1,0 +1,7 @@
+{"level":"info","message":"Core service running on port 3001 in development mode","service":"core-service","timestamp":"2026-09-25T05:55:58.556Z"}
+{"level":"info","message":"Core service running on port 3001 in development mode","service":"core-service","timestamp":"2026-09-25T05:56:24.878Z"}
+{"level":"info","message":"Core service running on port 3001 in development mode","service":"core-service","timestamp":"2026-09-25T05:56:35.574Z"}
+{"level":"info","message":"Core service running on port 3001 in development mode","service":"core-service","timestamp":"2026-09-25T05:57:20.146Z"}
+{"level":"info","message":"Core service running on port 3001 in development mode","service":"core-service","timestamp":"2026-09-25T05:57:41.042Z"}
+{"level":"info","message":"Core service running on port 3001 in development mode","service":"core-service","timestamp":"2026-09-25T05:57:53.569Z"}
+{"level":"warn","message":"Route not found: POST /workers/portfolio","method":"POST","requestId":"6b6584a9-a356-4960-9ca5-4c3650cd8988","service":"core-service","timestamp":"2026-09-25T06:02:29.488Z","url":"/workers/portfolio"}

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { HttpStatus } from '@domain/enums/HttpStatus'
+import { UnauthorizedError } from '@domain/errors/AppError'
 import {
   registerUser,
   loginUser,
@@ -9,8 +10,8 @@ import {
   otpUseCase,
 } from '@infrastructure/config/dependencies'
 
-const COOKIE_NAME = 'refresh_token'
-const IS_PROD     = process.env.NODE_ENV === 'production'
+const COOKIE_NAME  = 'refresh_token'
+const IS_PROD      = process.env.NODE_ENV === 'production'
 const REFRESH_DAYS = parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN_DAYS ?? '30')
 
 function setRefreshCookie(res: Response, token: string) {
@@ -72,11 +73,7 @@ export class AuthController {
   static async refresh(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const refreshToken = req.cookies[COOKIE_NAME] as string | undefined
-
-      if (!refreshToken) {
-        res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: 'No refresh token' })
-        return
-      }
+      if (!refreshToken) throw new UnauthorizedError('No refresh token')
 
       const result = await refreshAccessToken.execute({ refreshToken })
 
@@ -94,17 +91,14 @@ export class AuthController {
   static async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const refreshToken = req.cookies[COOKIE_NAME] as string | undefined
-
-      if (refreshToken) {
-        await logoutUser.execute({ refreshToken })
-      }
+      if (refreshToken) await logoutUser.execute({ refreshToken })
 
       clearRefreshCookie(res)
       res.status(HttpStatus.OK).json({ success: true, message: 'Logged out successfully' })
     } catch (err) { next(err) }
   }
 
-  // POST /auth/send-login-otp  — sends OTP to an already-registered email/phone
+  // POST /auth/send-login-otp — sends OTP to an already-registered email/phone
   static async sendLoginOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await otpUseCase.sendForRegistered(req.body)
@@ -112,7 +106,7 @@ export class AuthController {
     } catch (err) { next(err) }
   }
 
-  // POST /auth/verify-login-otp  — verifies a LOGIN-purpose OTP
+  // POST /auth/verify-login-otp — verifies a LOGIN-purpose OTP
   static async verifyLoginOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await otpUseCase.verify(req.body, 'LOGIN')
@@ -120,6 +114,7 @@ export class AuthController {
     } catch (err) { next(err) }
   }
 
+  // POST /auth/logout-all
   static async logoutAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = (req as any).userId // injected by API Gateway → extractUser

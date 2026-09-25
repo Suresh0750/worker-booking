@@ -1,8 +1,13 @@
-import { HttpStatus } from '@domain/enums/HttpStatus'
 import { IWorkerDocumentRepository } from '@domain/interfaces/IWorkerDocumentRepository'
 import { IWorkerRepository } from '@domain/interfaces/IWorkerRepository'
+import {
+  NotFoundError,
+  BadRequestError,
+  ForbiddenError,
+} from '@domain/errors/AppError'
 import { UploadDocumentInput, ReviewDocumentInput } from '../../schemas/WorkerSchemas'
-import { WorkerDocumentDto } from '../../dtos/WorkerDto'
+import { CreateWorkerDocumentDto, WorkerDocumentDto } from '../../dtos/WorkerDto'
+import { deleteImage } from '@infrastructure/services/storage.service'
 
 function toDto(d: any): WorkerDocumentDto {
   return {
@@ -16,12 +21,6 @@ function toDto(d: any): WorkerDocumentDto {
   }
 }
 
-function appError(status: number, message: string): never {
-  const err = new Error(message) as Error & { status?: number }
-  err.status = status
-  throw err
-}
-
 // ── Upload document ───────────────────────────────────────
 export class UploadWorkerDocument {
   constructor(
@@ -29,12 +28,12 @@ export class UploadWorkerDocument {
     private readonly workerRepo:   IWorkerRepository,
   ) {}
 
-  async execute(userId: string, dto: UploadDocumentInput): Promise<WorkerDocumentDto> {
+  async execute(userId: string, dto: CreateWorkerDocumentDto): Promise<WorkerDocumentDto> {
     const worker = await this.workerRepo.findByUserId(userId)
-    if (!worker) appError(HttpStatus.NOT_FOUND, 'Worker not found')
+    if (!worker) throw new NotFoundError('Worker not found')
 
     const doc = await this.documentRepo.create({
-      workerId:     worker!.id,
+      workerId:     worker.id,
       documentType: dto.documentType as any,
       documentUrl:  dto.documentUrl,
     })
@@ -52,9 +51,9 @@ export class GetWorkerDocuments {
 
   async execute(userId: string): Promise<WorkerDocumentDto[]> {
     const worker = await this.workerRepo.findByUserId(userId)
-    if (!worker) appError(HttpStatus.NOT_FOUND, 'Worker not found')
+    if (!worker) throw new NotFoundError('Worker not found')
 
-    const docs = await this.documentRepo.findByWorkerId(worker!.id)
+    const docs = await this.documentRepo.findByWorkerId(worker.id)
     return docs.map(toDto)
   }
 }
@@ -65,10 +64,10 @@ export class ReviewWorkerDocument {
 
   async execute(documentId: string, dto: ReviewDocumentInput): Promise<WorkerDocumentDto> {
     const doc = await this.documentRepo.findById(documentId)
-    if (!doc) appError(HttpStatus.NOT_FOUND, 'Document not found')
+    if (!doc) throw new NotFoundError('Document not found')
 
     if (dto.status === 'REJECTED' && !dto.rejectionReason) {
-      appError(HttpStatus.BAD_REQUEST, 'Rejection reason is required when rejecting a document')
+      throw new BadRequestError('Rejection reason is required when rejecting a document')
     }
 
     const updated = await this.documentRepo.updateStatus(documentId, {
@@ -90,12 +89,13 @@ export class DeleteWorkerDocument {
 
   async execute(documentId: string, userId: string): Promise<void> {
     const worker = await this.workerRepo.findByUserId(userId)
-    if (!worker) appError(HttpStatus.NOT_FOUND, 'Worker not found')
+    if (!worker) throw new NotFoundError('Worker not found')
 
     const doc = await this.documentRepo.findById(documentId)
-    if (!doc)                    appError(HttpStatus.NOT_FOUND,  'Document not found')
-    if (doc!.workerId !== worker!.id) appError(HttpStatus.FORBIDDEN, 'Forbidden')
+    if (!doc)                         throw new NotFoundError('Document not found')
+    if (doc.workerId !== worker.id)   throw new ForbiddenError('Forbidden')
 
-    await this.documentRepo.delete(documentId, worker!.id)
+    await this.documentRepo.delete(documentId, worker.id)
+    await deleteImage(doc.documentUrl);
   }
 }

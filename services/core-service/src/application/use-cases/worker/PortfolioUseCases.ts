@@ -1,6 +1,6 @@
-import { HttpStatus } from '@domain/enums/HttpStatus'
 import { IPortfolioRepository } from '@domain/interfaces/IPortfolioRepository'
 import { IWorkerRepository } from '@domain/interfaces/IWorkerRepository'
+import { NotFoundError } from '@domain/errors/AppError'
 import { AddPortfolioInput } from '../../schemas/WorkerSchemas'
 import { PortfolioDto } from '../../dtos/WorkerDto'
 
@@ -33,11 +33,8 @@ export class DeletePortfolioItem {
 
   async execute(itemId: string, userId: string): Promise<void> {
     const worker = await this.workerRepo.findByUserId(userId)
-    if (!worker) {
-      const err = new Error('Worker not found') as Error & { status?: number }
-      err.status = HttpStatus.NOT_FOUND
-      throw err
-    }
+    if (!worker) throw new NotFoundError('Worker not found')
+
     // deleteMany with both id + workerId enforces ownership
     await this.portfolioRepo.delete(itemId, worker.id)
   }

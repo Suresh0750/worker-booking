@@ -1,6 +1,6 @@
-import { HttpStatus } from '@domain/enums/HttpStatus'
 import { IWorkerRepository } from '@domain/interfaces/IWorkerRepository'
 import { ICategoryRepository } from '@domain/interfaces/ICategoryRepository'
+import { NotFoundError, BadRequestError } from '@domain/errors/AppError'
 import { UpdateWorkerProfileInput, SetCategoriesInput } from '../../schemas/WorkerSchemas'
 import { WorkerProfileDto } from '../../dtos/WorkerDto'
 import { toWorkerProfileDto } from './workerDtoMapper'
@@ -10,11 +10,7 @@ export class UpdateWorkerProfile {
 
   async execute(userId: string, dto: UpdateWorkerProfileInput): Promise<WorkerProfileDto> {
     const worker = await this.workerRepo.findByUserId(userId)
-    if (!worker) {
-      const err = new Error('Worker not found') as Error & { status?: number }
-      err.status = HttpStatus.NOT_FOUND
-      throw err
-    }
+    if (!worker) throw new NotFoundError('Worker not found')
 
     await this.workerRepo.update(worker.id, {
       bio:             dto.bio,
@@ -32,9 +28,7 @@ export class SetWorkerCategories {
 
   async execute(workerId: string, dto: SetCategoriesInput): Promise<void> {
     if (!dto.categoryIds.length) {
-      const err = new Error('At least one category is required') as Error & { status?: number }
-      err.status = HttpStatus.BAD_REQUEST
-      throw err
+      throw new BadRequestError('At least one category is required')
     }
     await this.categoryRepo.setWorkerCategories(workerId, dto.categoryIds)
   }

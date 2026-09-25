@@ -1,6 +1,6 @@
-import { HttpStatus } from '@domain/enums/HttpStatus'
 import { IUserRepository } from '@domain/interfaces/IUserRepository'
 import { IAddressRepository } from '@domain/interfaces/IAddressRepository'
+import { NotFoundError } from '@domain/errors/AppError'
 import { UserResponseDto, AddressResponseDto } from '../../dtos/UserDto'
 
 export interface UserProfileWithAddresses extends UserResponseDto {
@@ -15,11 +15,7 @@ export class GetUserProfile {
 
   async execute(userId: string): Promise<UserProfileWithAddresses> {
     const user = await this.userRepo.findById(userId)
-    if (!user) {
-      const err = new Error('User not found') as Error & { status?: number }
-      err.status = HttpStatus.NOT_FOUND
-      throw err
-    }
+    if (!user) throw new NotFoundError('User not found')
 
     const addresses = await this.addressRepo.findByUserId(userId)
 

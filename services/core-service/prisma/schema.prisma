@@ -125,7 +125,7 @@ model Worker {
   // geo-search: workers → users → addresses WHERE is_primary = true
 
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  portfolios       Portfolio[]
+  portfolioProjects PortfolioProject[]
   documents        WorkerDocument[]
   workerCategories WorkerCategory[]
   workerServices   WorkerService[]
@@ -158,20 +158,37 @@ model WorkerDocument {
 // PORTFOLIO
 // ─────────────────────────────────────────────────────────
 
-model Portfolio {
-  id         String    @id @default(uuid())
-  workerId   String    @map("worker_id")
-  mediaUrl   String    @map("media_url")
-  mediaType  MediaType @map("media_type")
-  caption    String?
-  uploadedAt DateTime  @default(now()) @map("uploaded_at")
+model PortfolioProject {
+  id          String   @id @default(uuid())
+  workerId    String   @map("worker_id")
+  categoryId  String?  @map("category_id")
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  worker Worker @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  worker   Worker           @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  category Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  media    Portfolio[]
 
   @@index([workerId])
-  @@map("portfolios")
+  @@index([categoryId])
+  @@map("portfolio_projects")
 }
 
+model Portfolio {
+  id        String    @id @default(uuid())
+  projectId String    @map("project_id")
+  mediaUrl  String    @map("media_url")
+  mediaType MediaType @map("media_type")
+  caption   String?
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  project PortfolioProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("portfolio_media")
+}
 // ─────────────────────────────────────────────────────────
 // CATEGORIES & SERVICES
 // ─────────────────────────────────────────────────────────
@@ -189,7 +206,8 @@ model Category {
 
   services         Service[]
   workerCategories WorkerCategory[]
-
+  portfolioProjects PortfolioProject[]
+  
   @@map("categories")
 }
 

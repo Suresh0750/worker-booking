@@ -1,25 +1,23 @@
 import bcrypt from 'bcryptjs'
-import { HttpStatus } from '@domain/enums/HttpStatus'
 import { IAuthRepository } from '@domain/interfaces/IAuthRepository'
 import { IOtpRepository } from '@domain/interfaces/IOtpRepository'
 import { IWorkerRepository } from '@domain/interfaces/IWorkerRepository'
 import { UserRole } from '@domain/entities/User'
+import { BadRequestError, ConflictError } from '@domain/errors/AppError'
 import { RegisterInput } from '../../schemas/AuthSchemas'
 import { RegisterResponseDto } from '../../dtos/AuthDto'
 
 export class RegisterUser {
   constructor(
-    private readonly authRepo:    IAuthRepository,
-    private readonly otpRepo:     IOtpRepository,
-    private readonly workerRepo:  IWorkerRepository,
+    private readonly authRepo:   IAuthRepository,
+    private readonly otpRepo:    IOtpRepository,
+    private readonly workerRepo: IWorkerRepository,
   ) {}
 
   async execute(dto: RegisterInput): Promise<RegisterResponseDto> {
     // 1. Duplicate email check
     const existing = await this.authRepo.findByEmail(dto.email)
-    if (existing) {
-      this.fail(HttpStatus.CONFLICT, 'Email already in use')
-    }
+    if (existing) throw new ConflictError('Email already in use')
 
     // 2. Require verified email OTP
     const emailOtp = await this.otpRepo.findLatestByIdentifierAndPurpose(
@@ -27,20 +25,19 @@ export class RegisterUser {
       'EMAIL_VERIFICATION',
     )
     if (!emailOtp?.verifiedAt) {
-      this.fail(HttpStatus.BAD_REQUEST, 'Email is not verified. Please verify your email first')
+      throw new BadRequestError('Email is not verified. Please verify your email first')
     }
 
-    const existPhone = await this.authRepo.findByPhone(dto.phone);
-    if(existPhone){
-      this.fail(HttpStatus.CONFLICT, 'Phone already in use')
-    }
+    const existPhone = await this.authRepo.findByPhone(dto.phone)
+    if (existPhone) throw new ConflictError('Phone already in use')
+
     // 3. Require verified phone OTP
     const phoneOtp = await this.otpRepo.findLatestByIdentifierAndPurpose(
       dto.phone,
       'PHONE_VERIFICATION',
     )
     if (!phoneOtp?.verifiedAt) {
-      this.fail(HttpStatus.BAD_REQUEST, 'Phone is not verified. Please verify your phone first')
+      throw new BadRequestError('Phone is not verified. Please verify your phone first')
     }
 
     // 4. Hash password
@@ -64,11 +61,5 @@ export class RegisterUser {
     return {
       user: { id: user.id, email: user.email, role: user.role },
     }
-  }
-
-  private fail(status: number, message: string): never {
-    const err = new Error(message) as Error & { status?: number }
-    err.status = status
-    throw err
   }
 }

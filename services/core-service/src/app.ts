@@ -13,12 +13,16 @@ import internalRoutes from './presentation/routes/internalRoutes'
 import seedRoutes     from './presentation/routes/seedRoutes'
 import locationRoutes from './presentation/routes/locationRoutes'
 import { errorHandler, notFoundHandler } from './presentation/middlewares/errorHandler'
+import { requestId } from './presentation/middlewares/requestId'
 import { logger } from './infrastructure/config/logger'
 import { HttpStatus } from './domain/enums/HttpStatus'
 import { authenticateJwt } from '@presentation/middlewares/authenticateJwt'
 
 const app  = express()
 const PORT = process.env.PORT ?? 3001
+
+// ── Request ID — must be first so every subsequent middleware/controller has it
+app.use(requestId)
 
 // ── Security ──────────────────────────────────────────────
 app.use(helmet())

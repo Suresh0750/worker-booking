@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import { v4 as uuid } from 'uuid'
-import { HttpStatus } from '@domain/enums/HttpStatus'
 import { IAuthRepository } from '@domain/interfaces/IAuthRepository'
+import { UnauthorizedError } from '@domain/errors/AppError'
 import { RefreshTokenInput } from '../../schemas/AuthSchemas'
 import { RefreshResponseDto } from '../../dtos/AuthDto'
 
@@ -13,16 +13,14 @@ export class RefreshAccessToken {
 
     if (!record || record.expiresAt < new Date()) {
       if (record) await this.authRepo.deleteRefreshToken(dto.refreshToken)
-      const err = new Error('Invalid or expired refresh token') as Error & { status?: number }
-      err.status = HttpStatus.UNAUTHORIZED
-      throw err
+      throw new UnauthorizedError('Invalid or expired refresh token')
     }
 
     // Rotate — delete old, issue new (prevents token reuse attacks)
     await this.authRepo.deleteRefreshToken(dto.refreshToken)
 
     const newRefreshToken = uuid()
-    const days = parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN_DAYS ?? '30')
+    const days      = parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN_DAYS ?? '30')
     const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
 
     await this.authRepo.saveRefreshToken({

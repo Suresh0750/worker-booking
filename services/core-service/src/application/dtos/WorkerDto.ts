@@ -16,11 +16,15 @@ export interface PortfolioDto {
   uploadedAt: Date
 }
 
-export interface WorkerDocumentDto {
+export interface CreateWorkerDocumentDto{
   id:              string
   documentType:    WorkerDocumentType
   documentUrl:     string
   status:          DocumentStatus
+}
+
+export interface WorkerDocumentDto extends CreateWorkerDocumentDto {
+
   rejectionReason: string | null
   verifiedAt:      Date | null
   createdAt:       Date

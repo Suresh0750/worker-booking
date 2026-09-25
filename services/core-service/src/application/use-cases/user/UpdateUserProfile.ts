@@ -1,28 +1,28 @@
-import { HttpStatus } from '@domain/enums/HttpStatus'
 import { IUserRepository } from '@domain/interfaces/IUserRepository'
 import { IWorkerRepository } from '@domain/interfaces/IWorkerRepository'
+import { NotFoundError } from '@domain/errors/AppError'
 import { UpdateProfileInput } from '../../schemas/UserSchemas'
 import { UserResponseDto } from '../../dtos/UserDto'
 
 export class UpdateUserProfile {
-  constructor(private readonly userRepo: IUserRepository,private readonly workerRepo : IWorkerRepository) {}
+  constructor(
+    private readonly userRepo:   IUserRepository,
+    private readonly workerRepo: IWorkerRepository,
+  ) {}
 
   async execute(userId: string, dto: UpdateProfileInput): Promise<UserResponseDto> {
     const user = await this.userRepo.findById(userId)
-    if (!user) {
-      const err = new Error('User not found') as Error & { status?: number }
-      err.status = HttpStatus.NOT_FOUND
-      throw err
-    }
+    if (!user) throw new NotFoundError('User not found')
 
     const updated = await this.userRepo.update(userId, dto)
-    if(dto.bio || dto.experienceYears){
-      const w = await this.workerRepo.findByUserId(userId);
+
+    if (dto.bio || dto.experienceYears) {
+      const w = await this.workerRepo.findByUserId(userId)
       const wData = {
         ...(dto.bio             !== undefined && { bio:             dto.bio }),
         ...(dto.experienceYears !== undefined && { experienceYears: dto.experienceYears }),
       }
-      await this.workerRepo.update(w?.id!,wData);
+      await this.workerRepo.update(w?.id!, wData)
     }
 
     return {

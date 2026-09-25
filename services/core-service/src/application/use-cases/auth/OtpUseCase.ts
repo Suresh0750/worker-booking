@@ -1,9 +1,13 @@
 import crypto from 'crypto'
-import { HttpStatus } from '@domain/enums/HttpStatus'
 import { IAuthRepository } from '@domain/interfaces/IAuthRepository'
 import { IOtpRepository } from '@domain/interfaces/IOtpRepository'
 import { IOtpDeliveryService } from '@domain/interfaces/IOtpDeliveryService'
 import { OtpPurpose } from '@domain/entities/Otp'
+import {
+  BadRequestError,
+  NotFoundError,
+  TooManyRequestsError,
+} from '@domain/errors/AppError'
 import { logger } from '@infrastructure/config/logger'
 import { SendOtpInput, VerifyOtpInput } from '../../schemas/AuthSchemas'
 import { SendOtpResponseDto, VerifyOtpResponseDto } from '../../dtos/AuthDto'
@@ -20,7 +24,7 @@ export class OtpUseCase {
   ) {}
 
   async send(dto: SendOtpInput): Promise<SendOtpResponseDto> {
-    const isEmail  = Boolean(dto.email)
+    const isEmail    = Boolean(dto.email)
     const identifier = (isEmail ? dto.email : dto.phone) as string
     const purpose: OtpPurpose = isEmail ? 'EMAIL_VERIFICATION' : 'PHONE_VERIFICATION'
     const channel  = isEmail ? 'EMAIL' : 'SMS'
@@ -31,8 +35,7 @@ export class OtpUseCase {
       : await this.authRepo.findByPhone(identifier)
 
     if (exists) {
-      this.fail(
-        HttpStatus.BAD_REQUEST,
+      throw new BadRequestError(
         isEmail ? 'Email address already registered' : 'Phone number already registered',
       )
     }
@@ -79,7 +82,9 @@ export class OtpUseCase {
       : await this.authRepo.findByPhone(identifier)
 
     if (!exists) {
-      this.fail(HttpStatus.NOT_FOUND, isEmail ? 'No account with this email' : 'No account with this phone number')
+      throw new NotFoundError(
+        isEmail ? 'No account with this email' : 'No account with this phone number',
+      )
     }
 
     const code     = crypto.randomInt(0, 1_000_000).toString().padStart(OTP_LENGTH, '0')
@@ -115,24 +120,22 @@ export class OtpUseCase {
 
     const record = await this.otpRepo.findLatestByIdentifierAndPurpose(identifier, purpose)
 
-    if (!record)                                    this.fail(HttpStatus.BAD_REQUEST, 'No OTP found for this identifier')
-    if (record!.verifiedAt)                         this.fail(HttpStatus.BAD_REQUEST, 'OTP already verified')
-    if (record!.expiresAt.getTime() < Date.now())   this.fail(HttpStatus.BAD_REQUEST, 'OTP has expired. Request a new one')
-    if (record!.attempts >= record!.maxAttempts)    this.fail(HttpStatus.TOO_MANY_REQUESTS, 'Too many failed attempts. Request a new OTP')
+    if (!record)
+      throw new BadRequestError('No OTP found for this identifier')
+    if (record.verifiedAt)
+      throw new BadRequestError('OTP already verified')
+    if (record.expiresAt.getTime() < Date.now())
+      throw new BadRequestError('OTP has expired. Request a new one')
+    if (record.attempts >= record.maxAttempts)
+      throw new TooManyRequestsError('Too many failed attempts. Request a new OTP')
 
     const hash = crypto.createHash('sha256').update(dto.otp).digest('hex')
-    if (hash !== record!.codeHash) {
-      await this.otpRepo.incrementAttempts(record!.id)
-      this.fail(HttpStatus.BAD_REQUEST, 'Invalid OTP')
+    if (hash !== record.codeHash) {
+      await this.otpRepo.incrementAttempts(record.id)
+      throw new BadRequestError('Invalid OTP')
     }
 
-    await this.otpRepo.markVerified(record!.id)
+    await this.otpRepo.markVerified(record.id)
     return { verified: true }
-  }
-
-  private fail(status: number, message: string): never {
-    const err = new Error(message) as Error & { status?: number }
-    err.status = status
-    throw err
   }
 }

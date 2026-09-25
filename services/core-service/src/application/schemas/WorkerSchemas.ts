@@ -49,7 +49,10 @@ export const addPortfolioSchema = z.object({
 // ── Documents ─────────────────────────────────────────────
 export const uploadDocumentSchema = z.object({
   documentType: documentTypeSchema,
-  documentUrl:  z.string().url('Valid document URL required'),
+  // documentUrl:  z.string().url('Valid document URL required'),
+  // document: z.instanceof(Buffer, {
+  //   message: "Document file is required",
+  // }),
 })
 
 export const reviewDocumentSchema = z.object({

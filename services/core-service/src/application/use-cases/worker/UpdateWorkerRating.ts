@@ -1,5 +1,5 @@
-import { HttpStatus } from '@domain/enums/HttpStatus'
 import { IWorkerRepository } from '@domain/interfaces/IWorkerRepository'
+import { NotFoundError } from '@domain/errors/AppError'
 
 export interface UpdateRatingInput {
   workerId:     string
@@ -14,11 +14,7 @@ export class UpdateWorkerRating {
 
   async execute(dto: UpdateRatingInput): Promise<void> {
     const worker = await this.workerRepo.findById(dto.workerId)
-    if (!worker) {
-      const err = new Error('Worker not found') as Error & { status?: number }
-      err.status = HttpStatus.NOT_FOUND
-      throw err
-    }
+    if (!worker) throw new NotFoundError('Worker not found')
 
     await this.workerRepo.updateRating(dto.workerId, {
       avgRating:    dto.avgRating,
