@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { set, z } from 'zod'
 import toast from 'react-hot-toast'
 import {
   MapPin, Plus, Pencil, Trash2, Star, Loader2, X, Check,
@@ -13,6 +13,7 @@ import { WorkerAddress } from '@/types'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/lib/auth-context'
 
 type LocationSearchKey = 'state' | 'city' | 'pincode'
 
@@ -114,12 +115,12 @@ type AddressFormData = z.infer<typeof addressSchema>
 
 export default function MyAddressPage() {
   const [addresses, setAddresses] = useState<WorkerAddress[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [settingPrimaryId, setSettingPrimaryId] = useState<string | null>(null)
-
+  const {user,addresses:userAddress} = useAuth()
   const {
     register,
     handleSubmit,
@@ -133,10 +134,22 @@ export default function MyAddressPage() {
   const selectedCity = watch('city')
 
   useEffect(() => {
-    api.worker.getAddresses()
-      .then(res => { setAddresses(res.data ?? []); setIsLoading(false) })
-      .catch(() => setIsLoading(false))
-  }, [])
+    if(!userAddress.length){
+      setIsLoading(true);
+      api.worker.getAddresses()
+        .then(res => { setAddresses(res.data ?? [])})
+        .catch((err) =>console.error(err.message) ).finally(()=>setIsLoading(false))
+    }else{
+      setAddresses(userAddress);
+    }
+  }, [userAddress])
+
+  useEffect(()=>{
+    console.log("userAddress",{
+      userAddress,
+      user
+    })
+  },[userAddress,user])
 
   const openAdd = () => {
     setEditingId(null)
@@ -191,7 +204,10 @@ export default function MyAddressPage() {
   const handleSetPrimary = async (id: string) => {
     setSettingPrimaryId(id)
     try {
-      await api.worker.setPrimaryAddress(id)
+      const address = addresses.find((ad) => ad.id === id);
+
+      const isPrimary = address ? !address.isPrimary : false;
+      await api.worker.updateAddress(id,{isPrimary})
       setAddresses(as => as.map(a => ({ ...a, isPrimary: a.id === id })))
       toast.success('Primary address updated!')
     } catch {

@@ -22,6 +22,9 @@ export interface UpdateAddressInput {
   lat?:     number
   lng?:     number
   label?:   string
+  id ? :    string
+  userId?:   string
+  isPrimary?: boolean
 }
 
 export interface IAddressRepository {

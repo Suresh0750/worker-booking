@@ -52,6 +52,8 @@ const config: Config = {
         'fade-in': 'fadeIn 0.3s ease forwards',
         'slide-in': 'slideIn 0.3s ease forwards',
         'spin-slow': 'spin 3s linear infinite',
+        // 'shimmer': 'shimmer 2s linear infinite',
+        // 'progress-bar': 'progressBar 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite',
       },
       keyframes: {
         fadeUp: {
@@ -66,6 +68,15 @@ const config: Config = {
           '0%': { opacity: '0', transform: 'translateX(-12px)' },
           '100%': { opacity: '1', transform: 'translateX(0)' },
         },
+        // shimmer: {
+        //   '0%':   { backgroundPosition: '-200% 0' },
+        //   '100%': { backgroundPosition: '200% 0' },
+        // },
+        // progressBar: {
+        //   '0%':   { transform: 'translateX(-100%) scaleX(0.2)' },
+        //   '50%':  { transform: 'translateX(10%)  scaleX(0.6)' },
+        //   '100%': { transform: 'translateX(100%) scaleX(0.2)' },
+        // },
       },
     },
   },

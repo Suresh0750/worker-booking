@@ -101,6 +101,16 @@ export const createWorkerAddress = z.object({
   state : z.string()
 })
 
+export const updateWorkerAddress = z.object({
+  city : z.string().optional(),
+  label :  z.string().optional(),
+  line1 : z.string().optional(),
+  line2 : z.string().optional(), 
+  pincode : z.string().optional(),
+  state : z.string().optional(),
+  isPrimary : z.boolean().optional()
+})
+
 export const internalWorkerEventSchema = z.discriminatedUnion('eventType', [
   createWorkerEventSchema,
   ratingUpdatedEventSchema,

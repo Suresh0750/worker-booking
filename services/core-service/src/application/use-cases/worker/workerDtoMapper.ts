@@ -1,5 +1,22 @@
-import { WorkerFullEntity } from '@domain/entities/Worker'
+import { WorkerAddressView, WorkerFullEntity } from '@domain/entities/Worker'
+import { AddressEntity } from '@domain/entities/Address'
 import { WorkerAddressDto, WorkerProfileDto } from '../../dtos/WorkerDto'
+
+// ── Shared address shape picker — works for both AddressEntity and WorkerAddressView ──
+function pickAddressDto(a: WorkerAddressView): WorkerAddressDto {
+  return {
+    id:        a.id,
+    line1:     a.line1,
+    line2:     a.line2,
+    city:      a.city,
+    state:     a.state,
+    pincode:   a.pincode,
+    lat:       a.lat,
+    lng:       a.lng,
+    label:     a.label,
+    isPrimary: a.isPrimary,
+  }
+}
 
 // Centralised mapper — all worker use cases share this
 export function toWorkerProfileDto(w: WorkerFullEntity): WorkerProfileDto {
@@ -19,49 +36,19 @@ export function toWorkerProfileDto(w: WorkerFullEntity): WorkerProfileDto {
     categories:      w.categories,
     portfolios:      w.portfolios,
     documents:       w.documents,
-    addresses:       w.addresses.map((a) => ({
-      id:        a.id,
-      line1:     a.line1,
-      line2:     a.line2,
-      city:      a.city,
-      state:     a.state,
-      pincode:   a.pincode,
-      lat:       a.lat !== null ? Number(a.lat) : null,
-      lng:       a.lng !== null ? Number(a.lng) : null,
-      label:     a.label,
-      isPrimary: a.isPrimary,
-    })),
+    addresses:       w.addresses.map(pickAddressDto),
   }
 }
 
-
-export function toWorkerAddressDto(wA : WorkerAddressDto):WorkerAddressDto{
-  return{
-      id:        wA.id,
-      line1:     wA.line1,
-      line2:     wA.line2,
-      city:      wA.city,
-      state:     wA.state,
-      pincode:   wA.pincode,
-      lat:       wA.lat !== null ? Number(wA.lat) : null,
-      lng:       wA.lng !== null ? Number(wA.lng) : null,
-      label:     wA.label,
-      isPrimary: wA.isPrimary,
-    }
+/**
+ * Maps a single AddressEntity → WorkerAddressDto.
+ * Strips internal fields (userId, createdAt, updatedAt) before sending to client.
+ */
+export function toWorkerAddressDto(a: AddressEntity): WorkerAddressDto {
+  return pickAddressDto(a)
 }
 
-
-export function toGetWorkerAddressDto(wA : WorkerAddressDto[]):WorkerAddressDto[]{
-  return wA.map((a)=>({
-      id:        a.id,
-      line1:     a.line1,
-      line2:     a.line2,
-      city:      a.city,
-      state:     a.state,
-      pincode:   a.pincode,
-      lat:       a.lat !== null ? Number(a.lat) : null,
-      lng:       a.lng !== null ? Number(a.lng) : null,
-      label:     a.label,
-      isPrimary: a.isPrimary,
-    }))
+/** Maps an array of AddressEntity → WorkerAddressDto[] */
+export function toGetWorkerAddressDto(addresses: AddressEntity[]): WorkerAddressDto[] {
+  return addresses.map(toWorkerAddressDto)
 }

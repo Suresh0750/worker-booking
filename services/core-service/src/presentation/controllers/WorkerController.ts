@@ -18,6 +18,8 @@ import {
   workerRepo,
   workersAddress
 } from '@infrastructure/config/dependencies'
+import { logger } from '@infrastructure/config/logger'
+import { success } from 'zod/v4'
 
 
 export class WorkerController {
@@ -201,10 +203,37 @@ export class WorkerController {
   }
   static async getAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const result = await workersAddress.get({
+      if(!(req as any).userId){
+        logger.info(`Get Address userid is missage`)
+        res.status(HttpStatus.BAD_REQUEST).json({success:false,message:"User id is missing"})
+        return 
+      }
+      const result = await workersAddress.get((req as any).userId)
+      res.status(HttpStatus.OK).json({ success: true, data: result })
+    } catch (err) { next(err) }
+  }
+  static async updateAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      logger.info(`Updating worker address for userId: ${(req as any).userId}, addressId: ${req.params.id}`)
+      const result = await workersAddress.update({
         ...req.body,
+        id: req.params.id,
         userId: (req as any).userId
       })
+      if(req.body.isPrimary === true  ){
+        logger.info(`Setting address ${req.params.id} as primary for userId: ${(req as any).userId}`)
+        const primaryAddress = await workersAddress.get((req as any).userId)
+        for(const address of primaryAddress){
+          if(address.id !== req.params.id && address.isPrimary){
+            logger.info(`Unsetting previous primary address ${address.id} for userId: ${(req as any).userId}`)
+            await workersAddress.update({
+              id: address.id,
+              userId: (req as any).userId,
+              isPrimary: false
+            })
+          }
+        }
+      }
       res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }

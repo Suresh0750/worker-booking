@@ -59,6 +59,7 @@ export class PrismaAddressRepository implements IAddressRepository {
         ...(data.lat     !== undefined && { lat:     data.lat }),
         ...(data.lng     !== undefined && { lng:     data.lng }),
         ...(data.label   !== undefined && { label:   data.label }),
+        ...(data.isPrimary !== undefined && { isPrimary: data.isPrimary }),
       },
     })
     return toAddressEntity(a)

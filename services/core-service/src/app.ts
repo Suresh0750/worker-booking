@@ -15,6 +15,7 @@ import locationRoutes from './presentation/routes/locationRoutes'
 import { errorHandler, notFoundHandler } from './presentation/middlewares/errorHandler'
 import { logger } from './infrastructure/config/logger'
 import { HttpStatus } from './domain/enums/HttpStatus'
+import { authenticateJwt } from '@presentation/middlewares/authenticateJwt'
 
 const app  = express()
 const PORT = process.env.PORT ?? 3001
@@ -66,7 +67,7 @@ app.get('/health', (_req, res) => {
 // ── Routes ────────────────────────────────────────────────
 app.use('/auth',     authLimiter, authRoutes)   // auth — stricter rate limit
 app.use('/users',    userRoutes)                // user profiles + addresses
-app.use('/workers',  workerRoutes)              // worker profiles + search
+app.use('/workers', workerRoutes)              // worker profiles + search
 app.use('/internal', internalRoutes)            // service-to-service only
 app.use('/seed',     seedRoutes)                // category/service seeding
 app.use('/locations', locationRoutes)           // public location lookup

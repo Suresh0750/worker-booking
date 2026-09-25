@@ -1,7 +1,8 @@
 import crypto from 'crypto'
 import { OtpEntity } from '@domain/entities/Otp'
 import { UserEntity, UserProfileEntity, RefreshTokenEntity, Role } from '@domain/entities/User'
-import { CategoryEntity, PortfolioEntity, WorkerEntity, WorkerDocumentEntity, WorkerDocumentType, DocumentStatus, WorkerAddressView, Availability } from '@domain/entities/Worker'
+import { CategoryEntity, PortfolioEntity, WorkerEntity, WorkerDocumentEntity, WorkerDocumentType, DocumentStatus, Availability } from '@domain/entities/Worker'
+import { AddressEntity } from '@domain/entities/Address'
 
 // ─── Auth mappers ──────────────────────────────────────────────────────────────
 
@@ -176,11 +177,12 @@ export function toWorkerEntity(record: {
 }
 
 /**
- * Maps a raw Prisma Address record to the domain WorkerAddressView.
+ * Maps a raw Prisma Address record to the domain AddressEntity.
  * lat/lng are stored as Prisma Decimal — coerce to number | null.
  */
 export function toAddressEntity(record: {
   id:        string
+  userId:    string
   line1:     string
   line2:     string | null
   city:      string
@@ -190,9 +192,12 @@ export function toAddressEntity(record: {
   lng:       { toNumber(): number } | number | null
   label:     string | null
   isPrimary: boolean
-}): WorkerAddressView {
+  createdAt: Date
+  updatedAt: Date
+}): AddressEntity {
   return {
     id:        record.id,
+    userId:    record.userId,
     line1:     record.line1,
     line2:     record.line2,
     city:      record.city,
@@ -206,6 +211,8 @@ export function toAddressEntity(record: {
                  : record.lng.toNumber(),
     label:     record.label,
     isPrimary: record.isPrimary,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
   }
 }
 

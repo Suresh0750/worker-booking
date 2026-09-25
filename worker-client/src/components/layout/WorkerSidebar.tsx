@@ -26,6 +26,10 @@ import {
 import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 
+interface WorkerSidebarProps {
+  className?: string
+}
+
 const NAV_ITEMS = [
   {
     section: 'Overview',
@@ -54,7 +58,7 @@ const NAV_ITEMS = [
   },
 ]
 
-export function WorkerSidebar() {
+export function WorkerSidebar({ className }: WorkerSidebarProps) {
   const { user, logout } = useAuth()
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -143,12 +147,15 @@ export function WorkerSidebar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <div className="hidden lg:flex flex-col w-60 shrink-0 border-r border-slate-200 bg-white fixed inset-y-0 left-0 z-30">
+      <div className={cn(
+        "hidden lg:flex flex-col w-60 shrink-0 border-r border-slate-200 bg-white fixed inset-y-0 left-0 z-30",
+        className
+      )}>
         {sidebarContent}
       </div>
 
       {/* Mobile top bar */}
-      <div className="lg:hidden fixed top-0 inset-x-0 z-30 h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4">
+      <div className={cn("lg:hidden fixed top-0 inset-x-0 z-30 h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4", className)}>
         <Link href="/worker/dashboard">
           <Logo variant="light" />
         </Link>

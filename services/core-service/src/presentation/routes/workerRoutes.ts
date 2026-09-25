@@ -10,6 +10,7 @@ import {
   uploadDocumentSchema,
   idParamsSchema,
   createWorkerAddress,
+  updateWorkerAddress
 } from '@application/schemas/WorkerSchemas'
 
 const router = Router()
@@ -55,9 +56,18 @@ router.post('/me/documents', authenticateJwt, validateRequest({ body: uploadDocu
 // DELETE /workers/me/documents/:id
 router.delete('/me/documents/:id', authenticateJwt, validateRequest({ params: idParamsSchema }), WorkerController.removeDocument)
 
+
 // GET /workers/:id  — MUST be last so literal paths above are matched first
 router.get('/:id', validateRequest({ params: idParamsSchema }), WorkerController.getById)
-router.post('/addresses',authenticateJwt, validateRequest({ body: createWorkerAddress }), WorkerController.createAddress);
-router.post('/addresses',authenticateJwt, WorkerController.getAddress);
+
+// ── Addresses ──────────────────────────────────────────────
+
+// POST /workers/addresses
+router.post('/addresses', authenticateJwt, validateRequest({ body: createWorkerAddress }), WorkerController.createAddress)
+
+// GET /workers/addresses
+router.get('/addresses', authenticateJwt, WorkerController.getAddress);
+
+router.put('/addresses/:id', authenticateJwt, validateRequest({ body: updateWorkerAddress }), WorkerController.updateAddress)
 
 export default router

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Logo } from '@/components/layout/Logo'
 import { cn } from '@/lib/utils'
@@ -11,7 +11,7 @@ import { useAuth } from '@/lib/auth-context'
 
 type Tab = 'login' | 'register'
 
-export default function AuthPage() {
+function AuthPage() {
   const router       = useRouter()
   const { user, isLoading } = useAuth()
   const searchParams = useSearchParams()
@@ -27,7 +27,8 @@ export default function AuthPage() {
   }, [user, isLoading, router])
 
   // Show a spinner while we check auth state, to avoid a flash of the login form
-  if (isLoading || user) {
+  if (isLoading) {
+    console.log('AuthPage: isLoading or user exists, showing spinner',user)
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
@@ -121,5 +122,13 @@ export default function AuthPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>}>
+      <AuthPage />
+    </Suspense>
   )
 }

@@ -32,6 +32,16 @@
   ::-webkit-scrollbar-thumb:hover {
     background: var(--color-scrollbar-hover);
   }
+
+  /* @keyframes stripes {
+    0%   { transform: translateX(-40%); }
+    100% { transform: translateX(40%);  }
+  }
+
+  @keyframes shine {
+    0%   { background-position: 200% center; }
+    100% { background-position: -200% center; }
+  } */
 }
 
 @layer components {

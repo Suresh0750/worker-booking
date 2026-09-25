@@ -95,7 +95,9 @@ http.interceptors.response.use(
         return http(original)
       } catch {
         await tokenStore.clear()
-        if (typeof window !== 'undefined') window.location.href = '/auth/login'
+        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth')) {
+          window.location.href = '/auth/login'
+        }
       }
     }
     return Promise.reject(err)
@@ -263,9 +265,6 @@ export const api = {
       http.put<ApiResponse<WorkerAddress>>(`/workers/addresses/${id}`, body).then((r) => r.data),
     deleteAddress: (id: string) =>
       http.delete(`/workers/addresses/${id}`).then((r) => r.data),
-    setPrimaryAddress: (id: string) =>
-      http.post(`/workers/addresses/${id}/primary`).then((r) => r.data),
-
     // Services
     getServices: () =>
       http.get<ApiResponse<WorkerService[]>>('/workers/services').then((r) => r.data),
