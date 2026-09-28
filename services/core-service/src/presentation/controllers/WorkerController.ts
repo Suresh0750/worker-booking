@@ -9,9 +9,17 @@ import {
   setWorkerCategories,
   searchWorkers,
   updateWorkerRating,
+  // legacy portfolio (kept for internal event handler)
   addPortfolioItem,
   deletePortfolioItem,
   getPortfolio,
+  // new project-based portfolio
+  getPortfolioProjects,
+  createPortfolioProject,
+  updatePortfolioProject,
+  deletePortfolioProject,
+  addMediaToProject,
+  deleteMediaFromProject,
   uploadWorkerDocument,
   getWorkerDocuments,
   reviewWorkerDocument,
@@ -19,16 +27,16 @@ import {
   categoryRepo,
   workerRepo,
   workersAddress,
+  registerUser,
 } from '@infrastructure/config/dependencies'
 import { childLogger } from '@infrastructure/config/logger'
-import { getImageUrl, uploadImage } from '@infrastructure/services/storage.service'
-
+import { getImageUrl, uploadImage, deleteImageSilent } from '@infrastructure/services/storage.service'
 
 export class WorkerController {
 
   // ── Public routes ─────────────────────────────────────────
 
-  // GET /workers/search?lat=&lng=&radiusKm=&categoryId=&city=
+  // GET /workers/search
   static async search(req: Request, res: Response, next: NextFunction): Promise<void> {
     const log = childLogger(req)
     log.info('Worker search requested', { query: req.query })
@@ -42,10 +50,8 @@ export class WorkerController {
   // GET /workers/categories
   static async getCategories(req: Request, res: Response, next: NextFunction): Promise<void> {
     const log = childLogger(req)
-    log.info('Get worker categories requested')
     try {
       const result = await categoryRepo.findAll()
-      log.info('Worker categories fetched', { count: result.length })
       res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
@@ -53,10 +59,8 @@ export class WorkerController {
   // GET /workers/:id
   static async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
     const log = childLogger(req)
-    log.info('Get worker by id requested', { workerId: req.params.id })
     try {
       const result = await getWorkerProfile.executeById(req.params.id)
-      log.info('Worker profile fetched by id', { workerId: req.params.id })
       res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
@@ -67,92 +71,177 @@ export class WorkerController {
   static async getMe(req: Request, res: Response, next: NextFunction): Promise<void> {
     const log = childLogger(req)
     const userId = (req as any).userId
-    log.info('Get own worker profile requested', { userId })
     try {
       const result = await getWorkerProfile.executeByUserId(userId)
-      log.info('Own worker profile fetched', { userId })
       res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
   // PATCH /workers/me
   static async updateMe(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const log = childLogger(req)
     const userId = (req as any).userId
-    log.info('Update own worker profile requested', { userId })
     try {
       const result = await updateWorkerProfile.execute(userId, req.body)
-      log.info('Worker profile updated', { userId })
       res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
   // PUT /workers/me/categories
   static async setCategories(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const log = childLogger(req)
     const userId = (req as any).userId
-    log.info('Set worker categories requested', { userId })
     try {
       const worker = await workerRepo.findByUserId(userId)
       if (!worker) throw new NotFoundError('Worker not found')
-
       await setWorkerCategories.execute(worker.id, req.body)
-      log.info('Worker categories updated', { userId, workerId: worker.id })
       res.status(HttpStatus.OK).json({ success: true, message: 'Categories updated' })
     } catch (err) { next(err) }
   }
 
-  // ── Portfolio ──────────────────────────────────────────────
+  // ── Portfolio Projects ────────────────────────────────────
 
   // GET /workers/me/portfolio
-  static async getPortfolioItems(req: Request, res: Response, next: NextFunction): Promise<void> {
+  static async getPortfolioProjects(req: Request, res: Response, next: NextFunction): Promise<void> {
     const log = childLogger(req)
     const userId = (req as any).userId
-    log.info('Get worker portfolio requested', { userId })
     try {
       const worker = await workerRepo.findByUserId(userId)
       if (!worker) throw new NotFoundError('Worker not found')
 
+      const projects = await getPortfolioProjects.execute(worker.id)
+
+      // Sign all media URLs
+      const signed = await Promise.all(
+        projects.map(async (proj) => ({
+          ...proj,
+          media: await Promise.all(
+            proj.media.map(async (m) => ({
+              ...m,
+              mediaUrl: await getImageUrl(m.mediaUrl).catch(() => m.mediaUrl),
+            })),
+          ),
+        })),
+      )
+
+      log.info('Portfolio projects fetched', { userId, count: signed.length })
+      res.status(HttpStatus.OK).json({ success: true, data: signed })
+    } catch (err) { next(err) }
+  }
+
+  // POST /workers/me/portfolio/projects
+  static async createProject(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const log = childLogger(req)
+    const userId = (req as any).userId
+    try {
+      const worker = await workerRepo.findByUserId(userId)
+      if (!worker) throw new NotFoundError('Worker not found')
+
+      const project = await createPortfolioProject.execute(worker.id, req.body)
+      log.info('Portfolio project created', { userId, projectId: project.id })
+      res.status(HttpStatus.CREATED).json({ success: true, data: project })
+    } catch (err) { next(err) }
+  }
+
+  // PATCH /workers/me/portfolio/projects/:id
+  static async updateProject(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const log = childLogger(req)
+    const userId = (req as any).userId
+    try {
+      const worker = await workerRepo.findByUserId(userId)
+      if (!worker) throw new NotFoundError('Worker not found')
+
+      const project = await updatePortfolioProject.execute(req.params.id, worker.id, req.body)
+      log.info('Portfolio project updated', { userId, projectId: project.id })
+      res.status(HttpStatus.OK).json({ success: true, data: project })
+    } catch (err) { next(err) }
+  }
+
+  // DELETE /workers/me/portfolio/projects/:id
+  static async deleteProject(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const log = childLogger(req)
+    const userId = (req as any).userId
+    try {
+      await deletePortfolioProject.execute(req.params.id, userId)
+      log.info('Portfolio project deleted', { userId, projectId: req.params.id })
+      res.status(HttpStatus.OK).json({ success: true, message: 'Project deleted' })
+    } catch (err) { next(err) }
+  }
+
+  // POST /workers/me/portfolio/projects/:id/media
+  static async addProjectMedia(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const log = childLogger(req)
+    const userId = (req as any).userId as string
+    try {
+      const file = (req as any).file as Express.Multer.File | undefined
+      if (!file) throw new BadRequestError('No media file uploaded')
+
+      // Determine mediaType from mime
+      const mediaType = file.mimetype.startsWith('video/') ? 'VIDEO' : 'IMAGE'
+
+      const ext = path.extname(file.originalname).toLowerCase()
+      const key = `workers/${userId}/portfolio/${req.params.id}/${Date.now()}${ext}`
+      await uploadImage(file, key)
+
+      const media = await addMediaToProject.execute(req.params.id, userId, {
+        mediaUrl:  key,
+        mediaType,
+        caption:   req.body.caption,
+      })
+
+      const signedUrl = await getImageUrl(key).catch(() => key)
+      log.info('Portfolio media added', { userId, projectId: req.params.id, mediaId: media.id })
+      res.status(HttpStatus.CREATED).json({
+        success: true,
+        data: { ...media, mediaUrl: signedUrl },
+      })
+    } catch (err) { next(err) }
+  }
+
+  // DELETE /workers/me/portfolio/media/:mediaId
+  static async deleteProjectMedia(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const log = childLogger(req)
+    const userId = (req as any).userId
+    try {
+      await deleteMediaFromProject.execute(req.params.mediaId, userId)
+      log.info('Portfolio media deleted', { userId, mediaId: req.params.mediaId })
+      res.status(HttpStatus.OK).json({ success: true, message: 'Media deleted' })
+    } catch (err) { next(err) }
+  }
+
+  // ── Legacy portfolio item handlers (kept for internal event handler) ────────
+
+  static async getPortfolioItems(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const userId = (req as any).userId
+    try {
+      const worker = await workerRepo.findByUserId(userId)
+      if (!worker) throw new NotFoundError('Worker not found')
       const result = await getPortfolio.execute(worker.id)
-      log.info('Worker portfolio fetched', { userId, count: result.length })
       res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
-  // POST /workers/me/portfolio
   static async addPortfolio(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const log = childLogger(req)
     const userId = (req as any).userId
-    log.info('Add portfolio item requested', { userId })
     try {
       const worker = await workerRepo.findByUserId(userId)
       if (!worker) throw new NotFoundError('Worker not found')
-
       const result = await addPortfolioItem.execute(worker.id, req.body)
-      log.info('Portfolio item added', { userId, workerId: worker.id, itemId: result.id })
       res.status(HttpStatus.CREATED).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
-  // DELETE /workers/me/portfolio/:id
   static async removePortfolio(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const log = childLogger(req)
     const userId = (req as any).userId
-    log.info('Remove portfolio item requested', { userId, itemId: req.params.id })
     try {
       await deletePortfolioItem.execute(req.params.id, userId)
-      log.info('Portfolio item deleted', { userId, itemId: req.params.id })
       res.status(HttpStatus.OK).json({ success: true, message: 'Portfolio item deleted' })
     } catch (err) { next(err) }
   }
 
   // ── Documents ──────────────────────────────────────────────
 
-  // POST /workers/me/documents
   static async uploadDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
     const log = childLogger(req)
     const userId = (req as any).userId as string
-    log.info('Upload worker document requested', { userId, documentType: req.body.documentType })
     try {
       const file = (req as any).file as Express.Multer.File | undefined
       if (!file) throw new BadRequestError('No image file uploaded')
@@ -166,42 +255,31 @@ export class WorkerController {
 
       const result = await uploadWorkerDocument.execute(userId, { ...req.body, documentUrl: key })
       const documentUrl = await getImageUrl(result.documentUrl)
-      log.info('Worker document uploaded', { userId, documentType: req.body.documentType, documentId: result.id })
       res.status(HttpStatus.CREATED).json({ success: true, data: { ...result, documentUrl } })
     } catch (err) { next(err) }
   }
 
-  // GET /workers/me/documents
   static async getDocuments(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const log = childLogger(req)
     const userId = (req as any).userId
-    log.info('Get worker documents requested', { userId })
     try {
       const result = await getWorkerDocuments.execute(userId)
-      log.info('Worker documents fetched', { userId, count: result.length })
       res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
-  // DELETE /workers/me/documents/:id
   static async removeDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const log = childLogger(req)
     const userId = (req as any).userId
-    log.info('Remove worker document requested', { userId, documentId: req.params.id })
     try {
       await deleteWorkerDocument.execute(req.params.id, userId)
-      log.info('Worker document deleted', { userId, documentId: req.params.id })
       res.status(HttpStatus.OK).json({ success: true, message: 'Document deleted' })
     } catch (err) { next(err) }
   }
 
   // ── Internal events ────────────────────────────────────────
 
-  // POST /internal/workers
   static async handleInternalEvent(req: Request, res: Response, next: NextFunction): Promise<void> {
     const log = childLogger(req)
     const { eventType, data } = req.body
-    log.info('Internal worker event received', { eventType })
     try {
       const handlers: Record<string, () => Promise<any>> = {
         create_profile: () => createWorkerProfile.execute({ userId: data.userId, ...data }),
@@ -216,25 +294,18 @@ export class WorkerController {
           })
         },
       }
-
       const handler = handlers[eventType]
       if (!handler) throw new BadRequestError(`Unknown eventType: ${eventType}`)
-
       const result = await handler()
-      log.info('Internal worker event handled', { eventType })
       res.status(HttpStatus.OK).json({ success: true, data: result ?? null })
     } catch (err) { next(err) }
   }
 
   // ── Admin — document review ────────────────────────────────
 
-  // PATCH /internal/workers/documents/:id/review
   static async reviewDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const log = childLogger(req)
-    log.info('Review worker document requested', { documentId: req.params.id })
     try {
       const result = await reviewWorkerDocument.execute(req.params.id, req.body)
-      log.info('Worker document reviewed', { documentId: req.params.id, status: req.body.status })
       res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
@@ -242,51 +313,42 @@ export class WorkerController {
   // ── Worker Address ─────────────────────────────────────────
 
   static async createAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const log = childLogger(req)
     const userId = (req as any).userId
-    log.info('Create worker address requested', { userId })
     try {
       const result = await workersAddress.execute({ ...req.body, userId })
-      log.info('Worker address created', { userId, addressId: result.id })
       res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
   static async getAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const log = childLogger(req)
     const userId = (req as any).userId
-    log.info('Get worker addresses requested', { userId })
     try {
       if (!userId) throw new BadRequestError('User id is missing')
       const result = await workersAddress.get(userId)
-      log.info('Worker addresses fetched', { userId, count: result.length })
       res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }
 
   static async updateAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const log = childLogger(req)
     const userId = (req as any).userId
-    log.info('Update worker address requested', { userId, addressId: req.params.id })
     try {
-      const result = await workersAddress.update({
-        ...req.body,
-        id:     req.params.id,
-        userId,
-      })
-
+      const result = await workersAddress.update({ ...req.body, id: req.params.id, userId })
       if (req.body.isPrimary === true) {
-        log.info('Setting primary worker address', { userId, addressId: req.params.id })
         const allAddresses = await workersAddress.get(userId)
         for (const address of allAddresses) {
           if (address.id !== req.params.id && address.isPrimary) {
-            log.info('Unsetting previous primary address', { userId, addressId: address.id })
             await workersAddress.update({ id: address.id, userId, isPrimary: false })
           }
         }
       }
+      res.status(HttpStatus.OK).json({ success: true, data: result })
+    } catch (err) { next(err) }
+  }
 
-      log.info('Worker address updated', { userId, addressId: req.params.id })
+  static async changePassWord(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = (req as any).userId
+      const result = await registerUser.changePass({ userId, ...req.body })
       res.status(HttpStatus.OK).json({ success: true, data: result })
     } catch (err) { next(err) }
   }

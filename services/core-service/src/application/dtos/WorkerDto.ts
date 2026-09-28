@@ -8,6 +8,31 @@ export interface CategoryDto {
   isActive: boolean
 }
 
+// ── Portfolio ──────────────────────────────────────────────
+
+export interface PortfolioMediaDto {
+  id:        string
+  projectId: string
+  mediaUrl:  string
+  mediaType: MediaType
+  caption:   string | null
+  createdAt: Date
+}
+
+export interface PortfolioProjectDto {
+  id:          string
+  workerId:    string
+  categoryId:  string | null
+  categoryName?: string | null
+  name:        string
+  description: string | null
+  createdAt:   Date
+  updatedAt:   Date
+  mediaCount:  number
+  media:       PortfolioMediaDto[]
+}
+
+/** @deprecated Kept for compat with legacy flat portfolio response */
 export interface PortfolioDto {
   id:         string
   mediaUrl:   string
@@ -16,19 +41,22 @@ export interface PortfolioDto {
   uploadedAt: Date
 }
 
-export interface CreateWorkerDocumentDto{
-  id:              string
-  documentType:    WorkerDocumentType
-  documentUrl:     string
-  status:          DocumentStatus
+// ── Documents ──────────────────────────────────────────────
+
+export interface CreateWorkerDocumentDto {
+  id:           string
+  documentType: WorkerDocumentType
+  documentUrl:  string
+  status:       DocumentStatus
 }
 
 export interface WorkerDocumentDto extends CreateWorkerDocumentDto {
-
   rejectionReason: string | null
   verifiedAt:      Date | null
   createdAt:       Date
 }
+
+// ── Address ───────────────────────────────────────────────
 
 export interface WorkerAddressDto {
   id:        string
@@ -42,6 +70,8 @@ export interface WorkerAddressDto {
   label:     string | null
   isPrimary: boolean
 }
+
+// ── Worker profile ────────────────────────────────────────
 
 export interface WorkerProfileDto {
   id:              string

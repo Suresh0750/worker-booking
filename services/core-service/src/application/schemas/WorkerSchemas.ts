@@ -40,6 +40,18 @@ export const setCategoriesSchema = z.object({
 })
 
 // ── Portfolio ─────────────────────────────────────────────
+export const createProjectSchema = z.object({
+  name:        z.string().min(1, 'Project name is required').max(100, 'Name max 100 characters'),
+  description: z.string().max(500, 'Description max 500 characters').optional(),
+  categoryId:  z.string().uuid('Invalid categoryId').optional(),
+})
+
+export const updateProjectSchema = z.object({
+  name:        z.string().min(1).max(100).optional(),
+  description: z.string().max(500).nullable().optional(),
+  categoryId:  z.string().uuid('Invalid categoryId').nullable().optional(),
+})
+
 export const addPortfolioSchema = z.object({
   mediaUrl:  z.string().url('Valid media URL required'),
   mediaType: mediaTypeSchema,
@@ -120,12 +132,21 @@ export const internalWorkerEventSchema = z.discriminatedUnion('eventType', [
   mediaUploadedEventSchema,
 ])
 
+export const changePass = z.object({
+  currentPassword : z.string(),
+  newPassword : z.string(),
+  userId : z.string().optional()
+})
+
 // ── Inferred types ────────────────────────────────────────
 export type UpdateWorkerProfileInput  = z.infer<typeof updateWorkerProfileSchema>
 export type SearchWorkersInput        = z.infer<typeof searchWorkersSchema>
 export type SetCategoriesInput        = z.infer<typeof setCategoriesSchema>
+export type CreateProjectInput        = z.infer<typeof createProjectSchema>
+export type UpdateProjectInput        = z.infer<typeof updateProjectSchema>
 export type AddPortfolioInput         = z.infer<typeof addPortfolioSchema>
 export type UploadDocumentInput       = z.infer<typeof uploadDocumentSchema>
 export type ReviewDocumentInput       = z.infer<typeof reviewDocumentSchema>
 export type IdParamsInput             = z.infer<typeof idParamsSchema>
 export type InternalWorkerEventInput  = z.infer<typeof internalWorkerEventSchema>
+export type ChangePassword            = z.infer<typeof changePass>;

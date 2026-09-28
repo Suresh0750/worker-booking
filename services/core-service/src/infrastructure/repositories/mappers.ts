@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import { OtpEntity } from '@domain/entities/Otp'
 import { UserEntity, UserProfileEntity, RefreshTokenEntity, Role } from '@domain/entities/User'
-import { CategoryEntity, PortfolioEntity, WorkerEntity, WorkerDocumentEntity, WorkerDocumentType, DocumentStatus, Availability } from '@domain/entities/Worker'
+import { CategoryEntity, PortfolioEntity, PortfolioMediaEntity, PortfolioProjectEntity, WorkerEntity, WorkerDocumentEntity, WorkerDocumentType, DocumentStatus, Availability } from '@domain/entities/Worker'
 import { AddressEntity } from '@domain/entities/Address'
 
 // ─── Auth mappers ──────────────────────────────────────────────────────────────
@@ -264,12 +264,7 @@ export function toWorkerDocumentEntity(record: {
 
 /**
  * Maps a raw Prisma Portfolio (media item) record to the domain PortfolioEntity.
- *
- * The DB schema uses a two-level structure:
- *   PortfolioProject { workerId, ... } → Portfolio { projectId, mediaUrl, ... }
- *
- * The domain entity stays flat, so `workerId` is passed in from the parent
- * PortfolioProject and `createdAt` is used as `uploadedAt`.
+ * Kept for backwards compat — prefer toPortfolioProjectEntity for new code.
  */
 export function toPortfolioEntity(
   record: {
@@ -288,5 +283,58 @@ export function toPortfolioEntity(
     mediaType:  record.mediaType as PortfolioEntity['mediaType'],
     caption:    record.caption,
     uploadedAt: record.createdAt,
+  }
+}
+
+/**
+ * Maps a raw Prisma Portfolio media record to PortfolioMediaEntity.
+ */
+export function toPortfolioMediaEntity(record: {
+  id:        string
+  projectId: string
+  mediaUrl:  string
+  mediaType: string
+  caption:   string | null
+  createdAt: Date
+}): PortfolioMediaEntity {
+  return {
+    id:        record.id,
+    projectId: record.projectId,
+    mediaUrl:  record.mediaUrl,
+    mediaType: record.mediaType as PortfolioMediaEntity['mediaType'],
+    caption:   record.caption,
+    createdAt: record.createdAt,
+  }
+}
+
+/**
+ * Maps a Prisma PortfolioProject (with media[]) to PortfolioProjectEntity.
+ */
+export function toPortfolioProjectEntity(record: {
+  id:          string
+  workerId:    string
+  categoryId:  string | null
+  name:        string
+  description: string | null
+  createdAt:   Date
+  updatedAt:   Date
+  media:       Array<{
+    id:        string
+    projectId: string
+    mediaUrl:  string
+    mediaType: string
+    caption:   string | null
+    createdAt: Date
+  }>
+}): PortfolioProjectEntity {
+  return {
+    id:          record.id,
+    workerId:    record.workerId,
+    categoryId:  record.categoryId,
+    name:        record.name,
+    description: record.description,
+    createdAt:   record.createdAt,
+    updatedAt:   record.updatedAt,
+    media:       record.media.map(toPortfolioMediaEntity),
   }
 }

@@ -3,9 +3,10 @@ import { IAuthRepository } from '@domain/interfaces/IAuthRepository'
 import { IOtpRepository } from '@domain/interfaces/IOtpRepository'
 import { IWorkerRepository } from '@domain/interfaces/IWorkerRepository'
 import { UserRole } from '@domain/entities/User'
-import { BadRequestError, ConflictError } from '@domain/errors/AppError'
+import { BadRequestError, ConflictError, UnauthorizedError } from '@domain/errors/AppError'
 import { RegisterInput } from '../../schemas/AuthSchemas'
 import { RegisterResponseDto } from '../../dtos/AuthDto'
+import { ChangePassword } from '@application/schemas/WorkerSchemas'
 
 export class RegisterUser {
   constructor(
@@ -61,5 +62,20 @@ export class RegisterUser {
     return {
       user: { id: user.id, email: user.email, role: user.role },
     }
+  }
+  async changePass(dto:ChangePassword) : Promise<void>{
+    const userId = dto.userId ;
+    const user = await this.authRepo.findById(userId!);
+    if (!user || user?.isBlocked) {
+      throw new UnauthorizedError('Invalid email or password')
+    }
+    const isValid = await bcrypt.compare(dto.currentPassword, user.passwordHash)
+    if (!isValid) {
+      throw new UnauthorizedError('Invalid email or password')
+    }
+    const passwordHash = await bcrypt.hash(dto.newPassword, 12)
+    delete dto.userId;
+    this.authRepo.updateById(userId!,{password :passwordHash});
+    return ;
   }
 }

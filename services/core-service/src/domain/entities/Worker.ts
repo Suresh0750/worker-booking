@@ -34,6 +34,31 @@ export interface CategoryEntity {
   isActive: boolean
 }
 
+// ─── Portfolio ────────────────────────────────────────────
+
+/** A single media item belonging to a project */
+export interface PortfolioMediaEntity {
+  id:        string
+  projectId: string
+  mediaUrl:  string
+  mediaType: MediaType
+  caption:   string | null
+  createdAt: Date
+}
+
+/** A project groups multiple media items under a name + optional category */
+export interface PortfolioProjectEntity {
+  id:          string
+  workerId:    string
+  categoryId:  string | null
+  name:        string
+  description: string | null
+  createdAt:   Date
+  updatedAt:   Date
+  media:       PortfolioMediaEntity[]
+}
+
+/** Kept for backwards compat with any code still referencing PortfolioEntity */
 export interface PortfolioEntity {
   id:         string
   workerId:   string

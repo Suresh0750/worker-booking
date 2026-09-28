@@ -36,6 +36,16 @@ export interface UserProfileEntity {
   updatedAt:      Date
 }
 
+export interface UpdateUserEntity{
+  email?:        string
+  password?: string
+  role?:         Role
+  isActive?:     boolean
+  createdAt?:    Date
+  updatedAt?:    Date
+}
+
+
 export interface RefreshTokenEntity {
   id:        string
   token:     string   // plain token — only in memory, never persisted

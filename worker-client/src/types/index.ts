@@ -227,6 +227,29 @@ export interface WorkerCategory {
   category: CategoryItem
 }
 
+export interface PortfolioMediaItem {
+  id:        string
+  projectId: string
+  mediaUrl:  string
+  mediaType: MediaType
+  caption:   string | null
+  createdAt: string
+}
+
+export interface PortfolioProject {
+  id:           string
+  workerId:     string
+  categoryId:   string | null
+  categoryName: string | null
+  name:         string
+  description:  string | null
+  createdAt:    string
+  updatedAt:    string
+  mediaCount:   number
+  media:        PortfolioMediaItem[]
+}
+
+/** @deprecated use PortfolioProject */
 export interface PortfolioItem {
   id: string
   workerId: string

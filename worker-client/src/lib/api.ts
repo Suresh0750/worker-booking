@@ -283,9 +283,30 @@ export const api = {
     removeCategory: (categoryId: string) =>
       http.delete(`/workers/categories/${categoryId}`).then((r) => r.data),
 
-    // Portfolio (media)
+    // Portfolio (project-based)
+    getPortfolioProjects: () =>
+      http.get<ApiResponse<import('@/types').PortfolioProject[]>>('/workers/me/portfolio').then((r) => r.data),
+    createPortfolioProject: (body: { name: string; description?: string; categoryId?: string }) =>
+      http.post<ApiResponse<import('@/types').PortfolioProject>>('/workers/me/portfolio/projects', body).then((r) => r.data),
+    updatePortfolioProject: (id: string, body: { name?: string; description?: string | null; categoryId?: string | null }) =>
+      http.patch<ApiResponse<import('@/types').PortfolioProject>>(`/workers/me/portfolio/projects/${id}`, body).then((r) => r.data),
+    deletePortfolioProject: (id: string) =>
+      http.delete(`/workers/me/portfolio/projects/${id}`).then((r) => r.data),
+    uploadProjectMedia: async (projectId: string, file: File, caption?: string) => {
+      const form = new FormData()
+      form.append('media', file)
+      if (caption) form.append('caption', caption)
+      return http.post<ApiResponse<import('@/types').PortfolioMediaItem>>(`/workers/me/portfolio/projects/${projectId}/media`, form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }).then((r) => r.data)
+    },
+    deletePortfolioMedia: (mediaId: string) =>
+      http.delete(`/workers/me/portfolio/media/${mediaId}`).then((r) => r.data),
+
+    /** @deprecated use getPortfolioProjects */
     getPortfolio: () =>
-      http.get<ApiResponse<PortfolioItem[]>>('/workers/portfolio').then((r) => r.data),
+      http.get<ApiResponse<PortfolioItem[]>>('/workers/me/portfolio').then((r) => r.data),
+    /** @deprecated */
     uploadPortfolioMedia: async (file: File, caption?: string) => {
       const form = new FormData()
       form.append('media', file)
@@ -294,10 +315,12 @@ export const api = {
         headers: { 'Content-Type': 'multipart/form-data' },
       }).then((r) => r.data)
     },
+    /** @deprecated */
     updatePortfolioCaption: (id: string, caption: string) =>
       http.put<ApiResponse<PortfolioItem>>(`/workers/portfolio/${id}`, { caption }).then((r) => r.data),
+    /** @deprecated */
     deletePortfolioItem: (id: string) =>
-      http.delete(`/workers/portfolio/${id}`).then((r) => r.data),
+      http.delete(`/workers/me/portfolio/media/${id}`).then((r) => r.data),
 
     // Documents
     getDocuments: () =>

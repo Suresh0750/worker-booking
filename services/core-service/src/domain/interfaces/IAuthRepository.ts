@@ -1,4 +1,4 @@
-import { UserEntity, RefreshTokenEntity } from '../entities/User'
+import { UserEntity, RefreshTokenEntity ,UpdateUserEntity} from '../entities/User'
 
 export interface CreateUserInput {
   fullName:     string
@@ -27,4 +27,5 @@ export interface IAuthRepository {
   findRefreshToken(token: string): Promise<(RefreshTokenEntity & { user: UserEntity }) | null>
   deleteRefreshToken(token: string): Promise<void>
   deleteAllUserTokens(userId: string): Promise<void>
+  updateById(userId:string,data:UpdateUserEntity) : Promise<void>
 }

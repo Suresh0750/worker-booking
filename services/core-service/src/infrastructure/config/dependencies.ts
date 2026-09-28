@@ -67,7 +67,10 @@ import { GetWorkerProfile }                           from '@application/use-cas
 import { UpdateWorkerProfile, SetWorkerCategories }   from '@application/use-cases/worker/UpdateWorkerProfile'
 import { SearchWorkers }                              from '@application/use-cases/worker/SearchWorkers'
 import { UpdateWorkerRating }                         from '@application/use-cases/worker/UpdateWorkerRating'
-import { AddPortfolioItem, DeletePortfolioItem, GetPortfolio } from '@application/use-cases/worker/PortfolioUseCases'
+import { AddPortfolioItem, DeletePortfolioItem, GetPortfolio,
+  GetPortfolioProjects, CreatePortfolioProject, UpdatePortfolioProject,
+  DeletePortfolioProject, AddMediaToProject, DeleteMediaFromProject,
+} from '@application/use-cases/worker/PortfolioUseCases'
 import {WorkersAddress}                                from '@application/use-cases/worker/workerAdress'
 import {
   UploadWorkerDocument,
@@ -86,6 +89,14 @@ export const updateWorkerRating   = new UpdateWorkerRating(workerRepo)
 export const addPortfolioItem     = new AddPortfolioItem(portfolioRepo)
 export const deletePortfolioItem  = new DeletePortfolioItem(portfolioRepo, workerRepo)
 export const getPortfolio         = new GetPortfolio(portfolioRepo)
+
+// Project-based portfolio use-cases
+export const getPortfolioProjects    = new GetPortfolioProjects(portfolioRepo)
+export const createPortfolioProject  = new CreatePortfolioProject(portfolioRepo)
+export const updatePortfolioProject  = new UpdatePortfolioProject(portfolioRepo)
+export const deletePortfolioProject  = new DeletePortfolioProject(portfolioRepo, workerRepo)
+export const addMediaToProject       = new AddMediaToProject(portfolioRepo, workerRepo)
+export const deleteMediaFromProject  = new DeleteMediaFromProject(portfolioRepo, workerRepo)
 
 export const uploadWorkerDocument  = new UploadWorkerDocument(documentRepo, workerRepo)
 export const getWorkerDocuments    = new GetWorkerDocuments(documentRepo, workerRepo)

@@ -4,7 +4,7 @@ import {
   CreateUserInput,
   SaveRefreshTokenInput,
 } from '../../domain/interfaces/IAuthRepository'
-import { UserEntity, RefreshTokenEntity } from '../../domain/entities/User'
+import { UserEntity, RefreshTokenEntity, UpdateUserEntity } from '../../domain/entities/User'
 import {
   hashToken,
   toPrismaRole,
@@ -81,6 +81,9 @@ export class PrismaAuthRepository implements IAuthRepository {
 
   async deleteAllUserTokens(userId: string): Promise<void> {
     await prisma.refreshToken.deleteMany({ where: { userId } })
+  }
+  async updateById(userId:string,data:UpdateUserEntity){
+    await prisma.user.update({ where: { id :userId }, data});
   }
 }
 

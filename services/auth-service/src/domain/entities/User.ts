@@ -10,6 +10,15 @@ export interface UserEntity {
   updatedAt:    Date
 }
 
+export interface UpdateUserEntity{
+  email?:        string
+  passwordHash?: string
+  role?:         Role
+  isActive?:     boolean
+  createdAt?:    Date
+  updatedAt?:    Date
+}
+
 export interface RefreshTokenEntity {
   id:        string
   token:     string

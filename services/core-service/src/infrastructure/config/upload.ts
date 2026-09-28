@@ -35,3 +35,26 @@ export const documentUpload = multer({
     }
   },
 })
+
+const PORTFOLIO_MIME = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'video/mp4',
+  'video/quicktime',
+  'video/webm',
+  'video/x-msvideo',
+])
+
+export const portfolioUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
+  fileFilter: (_req, file, cb) => {
+    if (PORTFOLIO_MIME.has(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only images (JPEG, PNG, WebP, GIF) and videos (MP4, MOV, WebM, AVI) are allowed'))
+    }
+  },
+})

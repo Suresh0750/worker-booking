@@ -10,65 +10,90 @@ import {
   uploadDocumentSchema,
   idParamsSchema,
   createWorkerAddress,
-  updateWorkerAddress
+  updateWorkerAddress,
+  changePass,
+  createProjectSchema,
+  updateProjectSchema,
 } from '@application/schemas/WorkerSchemas'
-import { avatarUpload, documentUpload } from '@infrastructure/config/upload'
+import { avatarUpload, documentUpload, portfolioUpload } from '@infrastructure/config/upload'
 
 const router = Router()
 
-// ── Public routes (no auth) ───────────────────────────────
+// ── Public routes ──────────────────────────────────────────
 
-// GET /workers/search?lat=&lng=&radiusKm=&categoryId=&city=
 router.get('/search',     validateRequest({ query: searchWorkersSchema }), WorkerController.search)
-
-// GET /workers/categories
 router.get('/categories', WorkerController.getCategories)
 
-// ── Protected routes — declared BEFORE /:id so 'me' isn't matched as an id ──
+// ── Protected routes (literal paths BEFORE /:id) ──────────
 
-// GET /workers/me
-router.get('/me', authenticateJwt, WorkerController.getMe)
+// Profile
+router.get('/me',    authenticateJwt, WorkerController.getMe)
+router.patch('/me',  authenticateJwt, validateRequest({ body: updateWorkerProfileSchema }), WorkerController.updateMe)
 
-// PATCH /workers/me
-router.patch('/me', authenticateJwt, validateRequest({ body: updateWorkerProfileSchema }), WorkerController.updateMe)
-
-// PUT /workers/me/categories
+// Categories
 router.put('/me/categories', authenticateJwt, validateRequest({ body: setCategoriesSchema }), WorkerController.setCategories)
 
-// ── Portfolio ──────────────────────────────────────────────
+// ── Portfolio Projects ─────────────────────────────────────
 
-// GET  /workers/me/portfolio
-router.get('/me/portfolio', authenticateJwt, WorkerController.getPortfolioItems)
+// GET  /workers/me/portfolio           — list all projects (with media)
+router.get('/me/portfolio',
+  authenticateJwt,
+  WorkerController.getPortfolioProjects,
+)
 
-// POST /workers/me/portfolio
-router.post('/me/portfolio', authenticateJwt, validateRequest({ body: addPortfolioSchema }), WorkerController.addPortfolio)
+// POST /workers/me/portfolio/projects  — create a new project
+router.post('/me/portfolio/projects',
+  authenticateJwt,
+  validateRequest({ body: createProjectSchema }),
+  WorkerController.createProject,
+)
 
-// DELETE /workers/me/portfolio/:id
-router.delete('/me/portfolio/:id', authenticateJwt, validateRequest({ params: idParamsSchema }), WorkerController.removePortfolio)
+// PATCH /workers/me/portfolio/projects/:id  — update project name/description/category
+router.patch('/me/portfolio/projects/:id',
+  authenticateJwt,
+  validateRequest({ params: idParamsSchema, body: updateProjectSchema }),
+  WorkerController.updateProject,
+)
+
+// DELETE /workers/me/portfolio/projects/:id  — delete project + all its media
+router.delete('/me/portfolio/projects/:id',
+  authenticateJwt,
+  validateRequest({ params: idParamsSchema }),
+  WorkerController.deleteProject,
+)
+
+// POST /workers/me/portfolio/projects/:id/media  — upload a file into a project
+router.post('/me/portfolio/projects/:id/media',
+  authenticateJwt,
+  validateRequest({ params: idParamsSchema }),
+  portfolioUpload.single('media'),
+  WorkerController.addProjectMedia,
+)
+
+// DELETE /workers/me/portfolio/media/:mediaId  — delete a single media item
+router.delete('/me/portfolio/media/:mediaId',
+  authenticateJwt,
+  WorkerController.deleteProjectMedia,
+)
 
 // ── Documents ──────────────────────────────────────────────
 
-// GET  /workers/me/documents
-router.get('/documents', authenticateJwt, WorkerController.getDocuments)
-
-// POST /workers/me/documents
-router.post('/documents', authenticateJwt, documentUpload.single('document'), validateRequest({ body: uploadDocumentSchema }), WorkerController.uploadDocument)
-
-// DELETE /workers/me/documents/:id
+router.get('/documents',     authenticateJwt, WorkerController.getDocuments)
+router.post('/documents',    authenticateJwt, documentUpload.single('document'), validateRequest({ body: uploadDocumentSchema }), WorkerController.uploadDocument)
 router.delete('/documents/:id', authenticateJwt, validateRequest({ params: idParamsSchema }), WorkerController.removeDocument)
-
-
-// GET /workers/:id  — MUST be last so literal paths above are matched first
-router.get('/:id', validateRequest({ params: idParamsSchema }), WorkerController.getById)
 
 // ── Addresses ──────────────────────────────────────────────
 
-// POST /workers/addresses
-router.post('/addresses', authenticateJwt, validateRequest({ body: createWorkerAddress }), WorkerController.createAddress)
+router.post('/addresses',       authenticateJwt, validateRequest({ body: createWorkerAddress }), WorkerController.createAddress)
+router.get('/addresses',        authenticateJwt, WorkerController.getAddress)
+router.put('/addresses/:id',    authenticateJwt, validateRequest({ body: updateWorkerAddress }), WorkerController.updateAddress)
 
-// GET /workers/addresses
-router.get('/addresses', authenticateJwt, WorkerController.getAddress);
+// ── Account ────────────────────────────────────────────────
 
-router.put('/addresses/:id', authenticateJwt, validateRequest({ body: updateWorkerAddress }), WorkerController.updateAddress)
+router.put('/password', authenticateJwt, validateRequest({ body: changePass }), WorkerController.changePassWord)
+
+// ── Public worker by id — MUST be last ────────────────────
+
+router.get('/:id', validateRequest({ params: idParamsSchema }), WorkerController.getById)
 
 export default router
