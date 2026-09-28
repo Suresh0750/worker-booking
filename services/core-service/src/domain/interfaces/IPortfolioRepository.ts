@@ -10,9 +10,9 @@ export interface CreateProjectInput {
 }
 
 export interface UpdateProjectInput {
-  name?:        string
-  description?: string
-  categoryId?:  string | null
+   categoryId?: string | null | undefined;
+    name?: string | undefined;
+    description?: string | null | undefined;
 }
 
 export interface AddMediaInput {
