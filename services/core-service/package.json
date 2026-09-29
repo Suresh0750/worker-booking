@@ -5,7 +5,7 @@
   "main": "dist/app.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/app.ts",
-    "build": "tsc",
+    "build": "tsc && tsc-alias -p tsconfig.json",
     "start": "node dist/app.js",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
@@ -42,6 +42,7 @@
     "@types/uuid": "^9.0.8",
     "prisma": "^5.7.0",
     "ts-node-dev": "^2.0.0",
+    "tsc-alias": "^1.9.5",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.2"
   },

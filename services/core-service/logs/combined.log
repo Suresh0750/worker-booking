@@ -155,3 +155,6 @@
 {"level":"info","message":"Core service running on port 3001 in development mode","service":"core-service","timestamp":"2026-09-28T07:47:10.338Z"}
 {"level":"info","message":"Core service running on port 3001 in development mode","service":"core-service","timestamp":"2026-09-28T07:47:17.205Z"}
 {"level":"info","message":"Core service running on port 3001 in development mode","service":"core-service","timestamp":"2026-09-28T07:47:26.230Z"}
+{"level":"info","message":"Core service running on port 3001 in development mode","service":"core-service","timestamp":"2026-09-29T12:37:50.197Z"}
+{"level":"info","message":"Core service running on port 3001 in development mode","service":"core-service","timestamp":"2026-09-29T12:38:03.061Z"}
+{"level":"info","message":"Core service running on port 3001 in development mode","service":"core-service","timestamp":"2026-09-29T12:38:14.280Z"}

@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "build": "npm --prefix services/core-service run build",
+    "start": "npm --prefix services/core-service start"
+  },
   "dependencies": {
     "@neon/config": "^1.7.3",
     "@neon/env": "^1.4.4"
